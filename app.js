@@ -1,5 +1,5 @@
 var CLAUDE_FUNCTION_URL = "https://claudechat-vwvivsoxwa-ew.a.run.app";
-var ACCESS_CODES = {"oldione":"me","veronika":"her"};
+var ACCESS_CODES = {"mikhail2026":"me","veronika2026":"her"};
 
 // Код-экран
 (function(){
