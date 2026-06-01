@@ -7,7 +7,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-exports.claudeChat = onRequest({ region: "europe-west1" }, (req, res) => {
+exports.claudeChat = onRequest({ region: "europe-west1", invoker: "public" }, (req, res) => {
   Object.entries(CORS_HEADERS).forEach(([k, v]) => res.set(k, v));
 
   if (req.method === "OPTIONS") {
