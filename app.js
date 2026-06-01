@@ -8,16 +8,14 @@ var saveGoals = function(){};
 var saveMonthDebounced = function(){};
 
 var MONTHS={
-  "2026-03":{income:[{l:"Доход",a:1350,cur:"USD",by:"me"},{l:"Зарплата",a:65000,cur:"RSD",by:"her"}],fixed:[{l:"Аренда",a:350,cur:"EUR",by:"me"},{l:"Связь",a:3500,cur:"RSD",by:"her"}],variable:[{l:"Продукты",a:24000,cur:"RSD",sub:"Продукты",by:"her"},{l:"Кафе",a:5000,cur:"RSD",sub:"Кафе",by:"me"}]},
-  "2026-04":{income:[{l:"Доход",a:1400,cur:"USD",by:"me"},{l:"Зарплата",a:68000,cur:"RSD",by:"her"}],fixed:[{l:"Аренда",a:350,cur:"EUR",by:"me"},{l:"Связь и интернет",a:3500,cur:"RSD",by:"her"}],variable:[{l:"Продукты",a:26000,cur:"RSD",sub:"Продукты",by:"her"},{l:"Кафе",a:4500,cur:"RSD",sub:"Кафе",by:"me"}]},
-  "2026-05":{income:[{l:"Доход",a:1500,cur:"USD",by:"me"},{l:"Фриланс",a:600,cur:"USD",by:"me"},{l:"Зарплата",a:70000,cur:"RSD",by:"her"}],fixed:[{l:"Аренда",a:350,cur:"EUR",by:"me"},{l:"Связь и интернет",a:3500,cur:"RSD",by:"her"},{l:"Подписки",a:12,cur:"USD",by:"me"}],variable:[{l:"Продукты",a:28000,cur:"RSD",sub:"Продукты",by:"her"},{l:"Кафе",a:5200,cur:"RSD",sub:"Кафе",by:"me"},{l:"Метро и автобус",a:6000,cur:"RSD",sub:"Транспорт",by:"her"},{l:"Бензин",a:9000,cur:"RSD",sub:"Авто",by:"me"}]}
+  "2026-06":{income:[],fixed:[],variable:[]}
 };
-var curKey="2026-05";
+var curKey="2026-06";
 var data=MONTHS[curKey];
 var PEOPLE={me:{name:"Oldione",color:"#2d63f5"},her:{name:"Вероника",color:"#c06b8a"}};
 var filterWho="all";
-var goals=[{n:"Отпуск в Греции",t:2000,s:{me:850,her:0},c:"EUR"},{n:"Подушка безопасности",t:300000,s:{me:0,her:186000},c:"RSD"}];
-var archived=[{n:"Новый ноут",s:1400,c:"EUR",closed:"март 2026"}];
+var goals=[];
+var archived=[];
 var GSYM={RSD:"дин.",EUR:"€"};
 var MN=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
 var SUBCOL={"Еда":["#e3efe7","#1f5e44"],"Транспорт":["#e7eef4","#33597d"],"Авто":["#f0e7da","#8a5a2b"],"Развлечения":["#f6ecd2","#8a6612"],"Дом":["#ece4ef","#6b4a7a"],"Здоровье":["#e6efe0","#4a6b2f"],"Прочее":["#ece8df","#6b6457"]};
@@ -423,8 +421,10 @@ function fbInit(){
     var btn=$("loginBtn"),chip=$("userChip"),uname=$("userName"),uphoto=$("userPhoto");
     if(user){
       btn.style.display="none";chip.style.display="flex";
-      uname.textContent=user.displayName||user.email;
-      uphoto.textContent=(user.displayName||"?")[0].toUpperCase();
+      var firstName=(user.displayName||user.email).split(" ")[0];
+      uname.textContent=firstName;
+      uphoto.textContent=firstName[0].toUpperCase();
+      $("welcomeTitle").textContent="Добро пожаловать, "+firstName+" 👋";
       if(!$("uidBanner")){
         var b=document.createElement("div");b.id="uidBanner";b.className="uid-banner";
         b.innerHTML="UID для firestore.rules: <b>"+user.uid+"</b> <button class='uid-close' onclick='this.parentNode.remove()'>×</button>";
