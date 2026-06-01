@@ -196,7 +196,7 @@ document.querySelectorAll(".panel").forEach(function(p){
   var cat=p.getAttribute("data-cat");
   var al=p.querySelector(".add-label"),aa=p.querySelector(".add-amount"),ab=p.querySelector(".add-btn"),asub=p.querySelector(".add-sub"),acur=p.querySelector(".add-cur");
   if(asub){fillSubSelect(asub,"Продукты");asub.onchange=function(){if(asub.value==="__new"){var n=addSubcategory();fillSubSelect(asub,n||"Продукты");renderCat("variable");}};}
-  function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus();saveMonth();}
+  function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:localStorage.getItem("app_who")||"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus();saveMonth();}
   ab.onclick=add;aa.addEventListener("keydown",function(e){if(e.key==="Enter")add()});
 });
 var FIXED_WORDS=["аренд","ипотек","кредит","связ","интернет","подписк","страхов","коммунал","свет","газ","вода","абонемент"];
