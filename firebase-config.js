@@ -1,7 +1,7 @@
 // Firebase config — client-side keys, защита через Firestore Rules
 export const firebaseConfig = {
   apiKey: "AIzaSyCSXnaQMlAwBGKwFEBnpJfIe5m7yCP7qAc",
-  authDomain: "family-budget-8a563.firebaseapp.com",
+  authDomain: "family-budget-8a563.web.app",
   projectId: "family-budget-8a563",
   storageBucket: "family-budget-8a563.firebasestorage.app",
   messagingSenderId: "550543963682",
