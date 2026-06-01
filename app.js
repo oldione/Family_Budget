@@ -265,26 +265,29 @@ $("photoInput").onchange=function(e){
   reader.onload=function(ev){
     var img=new Image();
     img.onload=function(){
-      var MAX=800,w=img.width,h=img.height;
+      var MAX=400,w=img.width,h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
       else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
       var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
       canvas.getContext("2d").drawImage(img,0,0,w,h);
-      var dataUrl=canvas.toDataURL("image/jpeg",0.7);
+      var dataUrl=canvas.toDataURL("image/jpeg",0.65);
       var b64=dataUrl.slice(dataUrl.indexOf(",")+1);
-      fetch(CLAUDE_FUNCTION_URL,{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({image:b64,imageType:"image/jpeg",subs:SUBS,base:base})
-      }).then(function(r){return r.json()}).then(function(d){
-        loadEl.remove();
-        if(!d.items||!d.items.length){addMsg("Не удалось разобрать чек. Попробуй написать вручную.","bot");return;}
-        var report=applyItems(d.items);
-        addMsg("С чека добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
-      }).catch(function(err){
-        loadEl.remove();
-        addMsg("Ошибка: "+err.message,"bot");
-      }).finally(function(){btn.disabled=false;});
+      function doFetch(){
+        var payload=new Blob([JSON.stringify({image:b64,imageType:"image/jpeg",subs:SUBS,base:base})],{type:"application/json"});
+        fetch(CLAUDE_FUNCTION_URL,{method:"POST",body:payload})
+        .then(function(r){return r.json()}).then(function(d){
+          loadEl.remove();
+          if(!d.items||!d.items.length){addMsg("Не удалось разобрать чек. Попробуй написать вручную.","bot");return;}
+          var report=applyItems(d.items);
+          addMsg("С чека добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
+        }).catch(function(err){
+          loadEl.remove();
+          addMsg("Ошибка: "+err.message,"bot");
+        }).finally(function(){btn.disabled=false;});
+      }
+      // Ждём пока страница снова в фокусе после камеры (iOS убивает fetch в фоне)
+      if(document.visibilityState==="visible"){doFetch();}
+      else{document.addEventListener("visibilitychange",function h(){if(document.visibilityState==="visible"){document.removeEventListener("visibilitychange",h);doFetch();}});}
     };
     img.src=ev.target.result;
   };
