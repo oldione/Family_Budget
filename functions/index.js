@@ -21,16 +21,16 @@ exports.claudeChat = onRequest({ region: "europe-west1" }, (req, res) => {
     return;
   }
 
-  const { message, subs, base } = req.body || {};
-  if (!message) {
-    res.status(400).json({ error: "message required" });
+  const { message, image, imageType, subs, base } = req.body || {};
+  if (!message && !image) {
+    res.status(400).json({ error: "message or image required" });
     return;
   }
 
   const subsStr = (subs || []).join(", ") || "Еда, Транспорт, Авто, Развлечения, Дом, Здоровье, Прочее";
   const baseCur = base || "RSD";
 
-  const system = `Ты — ассистент семейного бюджета. Пользователь пишет по-русски о тратах или доходах.
+  const system = `Ты — ассистент семейного бюджета. Пользователь пишет по-русски о тратах или доходах, или прикрепляет фото чека.
 Верни ТОЛЬКО валидный JSON-массив, без пояснений, без markdown:
 [{"l":"название","a":число,"cur":"RSD"|"EUR"|"USD","cat":"income"|"fixed"|"variable","sub":"подкатегория"}]
 
@@ -43,14 +43,35 @@ exports.claudeChat = onRequest({ region: "europe-west1" }, (req, res) => {
 Если ни одна не подходит — используй "Прочее".
 
 Валюта: если явно указаны евро/€ → EUR, доллар/$→ USD, иначе → ${baseCur}.
-Если в тексте несколько позиций — верни несколько объектов в массиве.
-Числа без пробелов и символов валют. Название — с заглавной буквы.`;
+Если несколько позиций — верни несколько объектов. Числа без пробелов и символов валют. Название — с заглавной буквы.
+На чеке: каждую позицию как отдельный объект, итоговую сумму не включай.`;
+
+  // Build user content — text only or image + text
+  let userContent;
+  if (image) {
+    userContent = [
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: imageType || "image/jpeg",
+          data: image,
+        },
+      },
+      {
+        type: "text",
+        text: message || "Это чек. Разбери все позиции и суммы, верни JSON.",
+      },
+    ];
+  } else {
+    userContent = message;
+  }
 
   const body = JSON.stringify({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system,
-    messages: [{ role: "user", content: message }],
+    messages: [{ role: "user", content: userContent }],
   });
 
   const options = {
@@ -72,7 +93,6 @@ exports.claudeChat = onRequest({ region: "europe-west1" }, (req, res) => {
       try {
         const parsed = JSON.parse(data);
         const text = parsed.content?.[0]?.text || "";
-        // strip possible markdown code fences
         const clean = text.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").trim();
         const items = JSON.parse(clean);
         if (!Array.isArray(items)) throw new Error("not array");

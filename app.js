@@ -252,7 +252,36 @@ function handleSend(){
 $("sendBtn").onclick=handleSend;
 $("chatInput").addEventListener("keydown",function(e){if(e.key==="Enter")handleSend()});
 $("photoBtn").onclick=function(){$("photoInput").click()};
-$("photoInput").onchange=function(e){var f=e.target.files[0];if(!f)return;addMsg("Чек: "+f.name,"me");addMsg("На рабочем сайте чек уйдёт в Claude — он вытащит позиции и суммы.","bot");e.target.value=""};
+$("photoInput").onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  e.target.value="";
+  addMsg("Чек: "+f.name,"me");
+  if(!CLAUDE_FUNCTION_URL){addMsg("Чат с Claude не подключён.","bot");return;}
+  var btn=$("sendBtn");btn.disabled=true;
+  addMsg("…","bot");
+  var loadEl=$("chatLog").lastElementChild;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var dataUrl=ev.target.result;
+    var comma=dataUrl.indexOf(",");
+    var b64=dataUrl.slice(comma+1);
+    var mime=f.type||"image/jpeg";
+    fetch(CLAUDE_FUNCTION_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({image:b64,imageType:mime,subs:SUBS,base:base})
+    }).then(function(r){return r.json()}).then(function(d){
+      loadEl.remove();
+      if(!d.items||!d.items.length){addMsg("Не удалось разобрать чек. Попробуй написать вручную.","bot");return;}
+      var report=applyItems(d.items);
+      addMsg("С чека добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
+    }).catch(function(){
+      loadEl.remove();
+      addMsg("Ошибка при обработке чека.","bot");
+    }).finally(function(){btn.disabled=false;});
+  };
+  reader.readAsDataURL(f);
+};
 
 /* ── ПРОГРЕСС МЕСЯЦА ── */
 function renderMonthProgress(){
