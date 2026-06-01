@@ -2,6 +2,11 @@
 // https://europe-west1-ТВОЙ_ПРОЕКТ.cloudfunctions.net/claudeChat
 var CLAUDE_FUNCTION_URL = "";
 
+// Заглушки — fbInit() заменит на реальные Firestore-функции
+var saveMonth = function(){};
+var saveGoals = function(){};
+var saveMonthDebounced = function(){};
+
 var MONTHS={
   "2026-03":{income:[{l:"Доход",a:1350,cur:"USD",by:"me"},{l:"Зарплата",a:65000,cur:"RSD",by:"her"}],fixed:[{l:"Аренда",a:350,cur:"EUR",by:"me"},{l:"Связь",a:3500,cur:"RSD",by:"her"}],variable:[{l:"Продукты",a:24000,cur:"RSD",sub:"Продукты",by:"her"},{l:"Кафе",a:5000,cur:"RSD",sub:"Кафе",by:"me"}]},
   "2026-04":{income:[{l:"Доход",a:1400,cur:"USD",by:"me"},{l:"Зарплата",a:68000,cur:"RSD",by:"her"}],fixed:[{l:"Аренда",a:350,cur:"EUR",by:"me"},{l:"Связь и интернет",a:3500,cur:"RSD",by:"her"}],variable:[{l:"Продукты",a:26000,cur:"RSD",sub:"Продукты",by:"her"},{l:"Кафе",a:4500,cur:"RSD",sub:"Кафе",by:"me"}]},
@@ -59,25 +64,25 @@ function renderCat(cat,flashId){
     var dot=document.createElement("span");dot.className="item-dot";
     var pp=it.by&&PEOPLE[it.by];dot.style.background=pp?pp.color:"#cfc8ba";dot.title=pp?pp.name:"?";
     li.appendChild(dot);
-    var l=document.createElement("input");l.className="item-label";l.value=it.l;l.oninput=function(){it.l=l.value};li.appendChild(l);
+    var l=document.createElement("input");l.className="item-label";l.value=it.l;l.oninput=function(){it.l=l.value;saveMonthDebounced();};li.appendChild(l);
     if(cat==="variable"){
       var sub=it.sub||"Прочее";ensureSub(sub);
       var ts=document.createElement("select");ts.className="item-sub";fillSubSelect(ts,sub);
       var cc=SUBCOL[sub]||SUBCOL["Прочее"];ts.style.background=cc[0];ts.style.color=cc[1];
-      ts.onchange=function(){if(ts.value==="__new"){var n=addSubcategory();if(n)it.sub=n;}else{it.sub=ts.value;}renderCat("variable");totals();};
+      ts.onchange=function(){if(ts.value==="__new"){var n=addSubcategory();if(n)it.sub=n;}else{it.sub=ts.value;}renderCat("variable");totals();saveMonthDebounced();};
       li.appendChild(ts);
     }
-    var a=document.createElement("input");a.className="item-amount";a.type="number";a.value=it.a;a.oninput=function(){it.a=+a.value||0;totals();if(cat==="variable")renderBreak()};
+    var a=document.createElement("input");a.className="item-amount";a.type="number";a.value=it.a;a.oninput=function(){it.a=+a.value||0;totals();if(cat==="variable")renderBreak();saveMonthDebounced();};
     var cs=document.createElement("select");cs.className="item-cur";
     ["RSD","EUR","USD"].forEach(function(o){var op=document.createElement("option");op.value=o;op.textContent=CSYM[o]===o?o:CSYM[o];if(o===it.cur)op.selected=true;cs.appendChild(op)});
-    cs.onchange=function(){it.cur=cs.value;totals();if(cat==="variable")renderBreak()};
+    cs.onchange=function(){it.cur=cs.value;totals();if(cat==="variable")renderBreak();saveMonthDebounced();};
     var nb=document.createElement("button");nb.className="item-note-btn"+(it.note?" has-note":"");nb.title="Заметка";nb.textContent="✎";
-    var d=document.createElement("button");d.className="item-del";d.textContent="×";d.onclick=function(){data[cat]=data[cat].filter(function(x){return x!==it});renderCat(cat);totals()};
+    var d=document.createElement("button");d.className="item-del";d.textContent="×";d.onclick=function(){data[cat]=data[cat].filter(function(x){return x!==it});renderCat(cat);totals();saveMonth();};
     li.appendChild(a);li.appendChild(cs);li.appendChild(nb);li.appendChild(d);
     var wrapper=document.createElement("div");wrapper.style.cssText="display:flex;flex-direction:column";wrapper.appendChild(li);
     var nr=document.createElement("div");nr.className="item-note-row"+(it.note?" open":"");
     var ni=document.createElement("input");ni.className="item-note-input";ni.type="text";ni.placeholder="Заметка…";ni.value=it.note||"";
-    ni.oninput=function(){it.note=ni.value;nb.className="item-note-btn"+(it.note?" has-note":"")};
+    ni.oninput=function(){it.note=ni.value;nb.className="item-note-btn"+(it.note?" has-note":"");saveMonthDebounced();};
     nr.appendChild(ni);wrapper.appendChild(nr);
     nb.onclick=function(){nr.classList.toggle("open");if(nr.classList.contains("open"))ni.focus()};
     ul.appendChild(wrapper);
@@ -103,7 +108,7 @@ $("copyFixed").onclick=function(){
   if(!prev||!prev.fixed||!prev.fixed.length){var b=$("copyFixed");var t=b.textContent;b.textContent="в прошлом месяце пусто";setTimeout(function(){b.textContent=t},1600);return}
   if(data.fixed.length&&!confirm("Добавить обязательные из прошлого месяца?"))return;
   prev.fixed.forEach(function(x){data.fixed.push({l:x.l,a:x.a,cur:x.cur,by:x.by})});
-  renderCat("fixed");totals();
+  renderCat("fixed");totals();saveMonth();
 };
 var NS="http://www.w3.org/2000/svg";
 var PIE_PAL=["#2d63f5","#e0552e","#1a9e6f","#e0962a","#8b5cf6","#0ea5e9","#ec4899","#6b6457","#33597d","#c06b8a"];
@@ -152,7 +157,7 @@ document.querySelectorAll(".panel").forEach(function(p){
   var cat=p.getAttribute("data-cat");
   var al=p.querySelector(".add-label"),aa=p.querySelector(".add-amount"),ab=p.querySelector(".add-btn"),asub=p.querySelector(".add-sub"),acur=p.querySelector(".add-cur");
   if(asub){fillSubSelect(asub,"Еда");asub.onchange=function(){if(asub.value==="__new"){var n=addSubcategory();fillSubSelect(asub,n||"Еда");renderCat("variable");}};}
-  function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus()}
+  function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus();saveMonth();}
   ab.onclick=add;aa.addEventListener("keydown",function(e){if(e.key==="Enter")add()});
 });
 var FIXED_WORDS=["аренд","ипотек","кредит","связ","интернет","подписк","страхов","коммунал","свет","газ","вода","абонемент"];
@@ -284,12 +289,12 @@ function renderGoals(){
         '<div style="text-align:right"><span class="lab">Осталось</span><span class="val left">'+gfmt(left,g.c)+'</span></div>'+
       '</div>'+actions;
     el.querySelector(".goal-name").textContent=g.n;
-    el.querySelector(".goal-del").onclick=function(){goals=goals.filter(function(x){return x!==g});renderGoals()};
+    el.querySelector(".goal-del").onclick=function(){goals=goals.filter(function(x){return x!==g});renderGoals();saveGoals();};
     if(done){
-      el.querySelector(".goal-archive-btn").onclick=function(){archived.unshift({n:g.n,s:g.s,c:g.c,closed:monthName(curKey)});goals=goals.filter(function(x){return x!==g});renderGoals();renderArchive()};
+      el.querySelector(".goal-archive-btn").onclick=function(){archived.unshift({n:g.n,s:g.s,c:g.c,closed:monthName(curKey)});goals=goals.filter(function(x){return x!==g});renderGoals();renderArchive();saveGoals();};
     }else{
       var gi=el.querySelector(".goal-add-input");
-      function addc(){var v=+gi.value||0;if(!v)return;g.s+=v;renderGoals()}
+      function addc(){var v=+gi.value||0;if(!v)return;g.s+=v;renderGoals();saveGoals();}
       el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc()});
     }
     wrap.appendChild(el);
@@ -305,7 +310,7 @@ function renderArchive(){
     el.querySelector(".arc-name").textContent=a.n;list.appendChild(el);
   });
 }
-$("gAdd").onclick=function(){var n=$("gName").value.trim(),t=+$("gTarget").value||0,c=$("gCur").value;if(!n)return;goals.push({n:n,t:t,s:0,c:c});$("gName").value="";$("gTarget").value="";renderGoals()};
+$("gAdd").onclick=function(){var n=$("gName").value.trim(),t=+$("gTarget").value||0,c=$("gCur").value;if(!n)return;goals.push({n:n,t:t,s:0,c:c});$("gName").value="";$("gTarget").value="";renderGoals();saveGoals();};
 
 /* ── ЭКСПОРТ CSV ── */
 $("exportBtn").onclick=function(){
@@ -336,3 +341,82 @@ renderRatesNote();fetchRates();
 renderAll();renderGoals();renderArchive();
 renderMonthProgress();renderLineChart();
 addMsg("Привет! Напиши что купили — например <b>кофе 350, продукты 2400</b> — и я добавлю.","bot");
+
+/* ── FIREBASE AUTH + FIRESTORE ── */
+function fbInit(){
+  var FB=window.FB;
+  var _unsub,_saveTimer;
+
+  function cleanRec(r){
+    var c={l:r.l||"",a:+r.a||0,cur:r.cur||base,by:r.by||"me"};
+    if(r.sub)c.sub=r.sub;
+    if(r.note)c.note=r.note;
+    return c;
+  }
+
+  saveMonth=function(){
+    if(!window._fbUser)return;
+    FB.setDoc(["households",FB.HID,"months",curKey],{
+      income:data.income.map(cleanRec),
+      fixed:data.fixed.map(cleanRec),
+      variable:data.variable.map(cleanRec)
+    }).catch(function(e){console.warn("saveMonth:",e.code);});
+  };
+
+  saveMonthDebounced=function(){clearTimeout(_saveTimer);_saveTimer=setTimeout(saveMonth,700);};
+
+  saveGoals=function(){
+    if(!window._fbUser)return;
+    FB.setDoc(["households",FB.HID,"meta","goals"],{goals:goals,archived:archived})
+      .catch(function(e){console.warn("saveGoals:",e.code);});
+  };
+
+  function attachSnapshot(key){
+    if(_unsub)_unsub();
+    _unsub=FB.onSnap(["households",FB.HID,"months",key],function(snap){
+      if(!snap.exists())return;
+      var d=snap.data();
+      MONTHS[key]={income:d.income||[],fixed:d.fixed||[],variable:d.variable||[]};
+      (MONTHS[key].variable||[]).forEach(function(it){if(it.sub)ensureSub(it.sub);});
+      if(key===curKey){data=MONTHS[key];renderAll();}
+    },function(err){console.warn("snapshot:",err.code);});
+  }
+
+  function loadGoals(){
+    FB.getDoc(["households",FB.HID,"meta","goals"]).then(function(snap){
+      if(snap.exists()){var d=snap.data();if(d.goals)goals=d.goals;if(d.archived)archived=d.archived;}
+      renderGoals();renderArchive();
+    });
+  }
+
+  var _origSwitch=switchMonth;
+  switchMonth=function(d){_origSwitch(d);if(window._fbUser)attachSnapshot(curKey);};
+
+  function updateAuthUI(user){
+    var btn=$("loginBtn"),chip=$("userChip"),uname=$("userName"),uphoto=$("userPhoto");
+    if(user){
+      btn.style.display="none";chip.style.display="flex";
+      uname.textContent=user.displayName||user.email;
+      uphoto.textContent=(user.displayName||"?")[0].toUpperCase();
+      if(!$("uidBanner")){
+        var b=document.createElement("div");b.id="uidBanner";b.className="uid-banner";
+        b.innerHTML="UID для firestore.rules: <b>"+user.uid+"</b> <button class='uid-close' onclick='this.parentNode.remove()'>×</button>";
+        document.querySelector(".main").insertAdjacentElement("afterbegin",b);
+      }
+    } else {
+      btn.style.display="";chip.style.display="none";
+    }
+  }
+
+  $("loginBtn").onclick=function(){FB.signIn().catch(function(e){console.warn(e);});};
+  $("logoutBtn").onclick=function(){FB.signOut();};
+
+  FB.onAuth(function(user){
+    window._fbUser=user;
+    updateAuthUI(user);
+    if(user){attachSnapshot(curKey);loadGoals();}
+  });
+}
+
+if(window.FB){fbInit();}
+else{document.addEventListener("firebase-ready",fbInit,{once:true});}

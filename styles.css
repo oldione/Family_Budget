@@ -45,6 +45,13 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .export-btn svg{width:13px;height:13px;stroke-width:2.2}
 .user-chip{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:4px 12px 4px 4px;font-size:13px;font-weight:600}
 .user-photo{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
+.login-btn{font:inherit;font-size:13px;font-weight:700;background:var(--accent);color:#fff;border:none;border-radius:99px;padding:6px 16px;cursor:pointer;transition:opacity .12s}
+.login-btn:hover{opacity:.85}
+.logout-btn{font:inherit;font-size:15px;font-weight:700;background:none;border:none;color:var(--muted);cursor:pointer;padding:0 2px;line-height:1}
+.logout-btn:hover{color:var(--ink)}
+.uid-banner{background:#fffbe6;border:1px solid #f0d060;border-radius:10px;padding:10px 16px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.uid-banner b{font-family:monospace;word-break:break-all}
+.uid-close{font:inherit;background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);margin-left:auto;padding:0}
 
 /* ── MAIN ── */
 .main{max-width:1240px;margin:0 auto;padding:32px 32px 80px}

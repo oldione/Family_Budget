@@ -1,16 +1,12 @@
-// =====================================================================
-//  НАСТРОЙКА FIREBASE  (понадобится на шаге подключения синхронизации)
-//  Firebase Console → Project settings → Your apps → SDK setup → Config.
-//  Эти ключи НЕ секретные (они для клиента). Защиту дают правила Firestore.
-// =====================================================================
+// Firebase config — client-side keys, защита через Firestore Rules
 export const firebaseConfig = {
-  apiKey: "ВСТАВЬ_СЮДА",
-  authDomain: "ТВОЙ_ПРОЕКТ.firebaseapp.com",
-  projectId: "ТВОЙ_ПРОЕКТ",
-  storageBucket: "ТВОЙ_ПРОЕКТ.appspot.com",
-  messagingSenderId: "ВСТАВЬ_СЮДА",
-  appId: "ВСТАВЬ_СЮДА",
+  apiKey: "AIzaSyCSXnaQMlAwBGKwFEBnpJfIe5m7yCP7qAc",
+  authDomain: "family-budget-8a563.firebaseapp.com",
+  projectId: "family-budget-8a563",
+  storageBucket: "family-budget-8a563.firebasestorage.app",
+  messagingSenderId: "550543963682",
+  appId: "1:550543963682:web:d700cfbc3dc063480f3c7b"
 };
 
-// Общий ID вашего «домохозяйства» — любая длинная строка, одинаковая у обоих.
-export const HOUSEHOLD_ID = "smeni-na-svoy-dlinnyy-id";
+// Общий ID домохозяйства — одинаковый у обоих пользователей
+export const HOUSEHOLD_ID = "oldione-veronika-budget";
