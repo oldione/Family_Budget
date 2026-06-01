@@ -277,7 +277,14 @@ $("photoInput").onchange=function(e){
         .then(function(r){return r.json()}).then(function(d){
           loadEl.remove();
           if(!d.items||!d.items.length){addMsg("Не удалось разобрать чек. Попробуй написать вручную.","bot");return;}
-          var report=applyItems(d.items);
+          // Группируем по cat+sub — одна строка на подкатегорию
+          var groups={};
+          d.items.forEach(function(it){
+            var key=(it.cat||"variable")+"|"+(it.sub||"Прочее");
+            if(!groups[key]){groups[key]={l:it.sub||"Прочее",a:0,cur:it.cur||base,cat:it.cat||"variable",sub:it.sub||"Прочее"};}
+            groups[key].a+=+it.a||0;
+          });
+          var report=applyItems(Object.values(groups));
           addMsg("С чека добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
         }).catch(function(err){
           loadEl.remove();
