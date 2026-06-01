@@ -217,6 +217,7 @@ function applyItems(items){
     report.push(rec.l+" "+fmt(rec.a)+" → <b>"+tail+"</b>");
   });
   totals();
+  saveMonth();
   return report;
 }
 function handleSendLocal(text){
