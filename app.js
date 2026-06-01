@@ -260,35 +260,41 @@ $("photoInput").onchange=function(e){
   var btn=$("sendBtn");btn.disabled=true;
   addMsg("…","bot");
   var loadEl=$("chatLog").lastElementChild;
-  // Сжимаем до 1200px перед отправкой
+  // Сжимаем до 800px перед отправкой
   var reader=new FileReader();
   reader.onload=function(ev){
     var img=new Image();
     img.onload=function(){
-      var MAX=1200,w=img.width,h=img.height;
-      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      var MAX=800,w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
+      else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
       var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
       canvas.getContext("2d").drawImage(img,0,0,w,h);
       canvas.toBlob(function(blob){
         var r2=new FileReader();
         r2.onload=function(e2){
           var du=e2.target.result,comma=du.indexOf(","),b64=du.slice(comma+1);
+          var ctrl=new AbortController();
+          var timer=setTimeout(function(){ctrl.abort();},25000);
           fetch(CLAUDE_FUNCTION_URL,{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({image:b64,imageType:"image/jpeg",subs:SUBS,base:base})
+            body:JSON.stringify({image:b64,imageType:"image/jpeg",subs:SUBS,base:base}),
+            signal:ctrl.signal
           }).then(function(r){return r.json()}).then(function(d){
+            clearTimeout(timer);
             loadEl.remove();
             if(!d.items||!d.items.length){addMsg("Не удалось разобрать чек. Попробуй написать вручную.","bot");return;}
             var report=applyItems(d.items);
             addMsg("С чека добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
           }).catch(function(err){
+            clearTimeout(timer);
             loadEl.remove();
-            addMsg("Ошибка при обработке чека: "+err.message,"bot");
+            addMsg("Ошибка при обработке чека: "+(err.name==="AbortError"?"таймаут":err.message),"bot");
           }).finally(function(){btn.disabled=false;});
         };
         r2.readAsDataURL(blob);
-      },"image/jpeg",0.85);
+      },"image/jpeg",0.7);
     };
     img.src=ev.target.result;
   };
