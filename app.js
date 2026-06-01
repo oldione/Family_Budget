@@ -1,22 +1,26 @@
 var CLAUDE_FUNCTION_URL = "https://claudechat-vwvivsoxwa-ew.a.run.app";
-var ACCESS_CODE = "budget2026";
+var ACCESS_CODES = {"oldione":"me","veronika":"her"};
 
 // Код-экран
 (function(){
   function gi(id){return document.getElementById(id);}
   var gate=gi("codeGate");
   if(!gate)return;
-  if(localStorage.getItem("app_access")==="1"){gate.style.display="none";return;}
+  var saved=localStorage.getItem("app_who");
+  if(saved==="me"||saved==="her"){gate.style.display="none";window._appWho=saved;applyWho();return;}
   gate.style.display="flex";
   document.querySelector(".main") && (document.querySelector(".main").style.display="none");
   document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="none");
   function tryCode(){
-    var v=gi("codeInput").value.trim();
-    if(v===ACCESS_CODE){
-      localStorage.setItem("app_access","1");
+    var v=gi("codeInput").value.trim().toLowerCase();
+    var who=ACCESS_CODES[v];
+    if(who){
+      localStorage.setItem("app_who",who);
+      window._appWho=who;
       gate.style.display="none";
       document.querySelector(".main") && (document.querySelector(".main").style.display="");
       document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="");
+      applyWho();
     } else {
       gi("codeErr").textContent="Неверный код";
       gi("codeInput").value="";
@@ -25,8 +29,18 @@ var ACCESS_CODE = "budget2026";
   gi("codeBtn").onclick=tryCode;
   gi("codeInput").onkeydown=function(e){if(e.key==="Enter")tryCode();};
   var lb=gi("lockBtn");
-  if(lb){lb.style.display="";lb.onclick=function(){localStorage.removeItem("app_access");location.reload();};}
+  if(lb){lb.style.display="";lb.onclick=function(){localStorage.removeItem("app_who");location.reload();};}
 })();
+
+function applyWho(){
+  var who=window._appWho||localStorage.getItem("app_who");
+  if(!who)return;
+  var names={me:"Oldione",her:"Вероника"};
+  var wt=document.getElementById("welcomeTitle");
+  if(wt)wt.textContent="Привет, "+names[who]+" 👋";
+  var lb=document.getElementById("lockBtn");
+  if(lb){lb.style.display="inline-flex";lb.title="Выйти ("+names[who]+")";lb.textContent="🔒 "+names[who];}
+}
 
 // Заглушки — fbInit() заменит на реальные Firestore-функции
 var saveMonth = function(){};
@@ -391,6 +405,7 @@ $("monthLabel").textContent=monthName(curKey);
 renderRatesNote();fetchRates();
 renderAll();renderGoals();renderArchive();
 renderMonthProgress();renderLineChart();
+applyWho();
 addMsg("Привет! Напиши что купили — например <b>кофе 350, продукты 2400</b> — и я добавлю.","bot");
 
 /* ── FIREBASE AUTH + FIRESTORE ── */
