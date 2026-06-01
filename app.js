@@ -46,6 +46,7 @@ function applyWho(){
 var saveMonth = function(){};
 var saveGoals = function(){};
 var saveMonthDebounced = function(){};
+var saveSubs = function(){};
 
 var MONTHS={
   "2026-06":{income:[],fixed:[],variable:[]}
@@ -58,13 +59,13 @@ var goals=[];
 var archived=[];
 var GSYM={RSD:"дин.",EUR:"€"};
 var MN=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
-var SUBCOL={"Еда":["#e3efe7","#1f5e44"],"Транспорт":["#e7eef4","#33597d"],"Авто":["#f0e7da","#8a5a2b"],"Развлечения":["#f6ecd2","#8a6612"],"Дом":["#ece4ef","#6b4a7a"],"Здоровье":["#e6efe0","#4a6b2f"],"Прочее":["#ece8df","#6b6457"]};
+var SUBCOL={"Продукты":["#e3efe7","#1f5e44"],"Кафе":["#fce8ef","#b5468a"],"Транспорт":["#e7eef4","#33597d"],"Авто":["#f0e7da","#8a5a2b"],"Развлечения":["#f6ecd2","#8a6612"],"Дом":["#ece4ef","#6b4a7a"],"Здоровье":["#e6efe0","#4a6b2f"],"Прочее":["#ece8df","#6b6457"]};
 var SUBS=Object.keys(SUBCOL);
 var SUB_PAL=[["#e3eef7","#2f6bf2"],["#fce8ef","#b5468a"],["#eef4e0","#6a8a2f"],["#fdeede","#c2722e"],["#e9e6f6","#5b4bbf"],["#e0f1f0","#1f7a73"],["#f3e7e7","#9a4b4b"],["#eae7df","#6b6457"]];
 var subPalIdx=0;
 function colorForSub(name){if(!SUBCOL[name]){SUBCOL[name]=SUB_PAL[subPalIdx%SUB_PAL.length];subPalIdx++;}return SUBCOL[name]}
-function ensureSub(name){if(SUBS.indexOf(name)===-1){var i=SUBS.indexOf("Прочее");if(i>=0)SUBS.splice(i,0,name);else SUBS.push(name);colorForSub(name);}}
-function addSubcategory(){var name=prompt("Название новой подкатегории:");if(!name)return null;name=name.trim();if(!name)return null;ensureSub(name);return name}
+function ensureSub(name){if(SUBS.indexOf(name)===-1){var i=SUBS.indexOf("Прочее");if(i>=0)SUBS.splice(i,0,name);else SUBS.push(name);colorForSub(name);saveSubs();}}
+function addSubcategory(){var name=prompt("Название новой подкатегории:");if(!name)return null;name=name.trim();if(!name)return null;ensureSub(name);saveSubs();return name}
 function fillSubSelect(sel,selected){sel.innerHTML="";SUBS.forEach(function(s){var o=document.createElement("option");o.value=s;o.textContent=s;if(s===selected)o.selected=true;sel.appendChild(o)});var on=document.createElement("option");on.value="__new";on.textContent="+ новая…";sel.appendChild(on)}
 Object.keys(MONTHS).forEach(function(k){(MONTHS[k].variable||[]).forEach(function(it){if(it.sub)ensureSub(it.sub)})});
 var CSYM={RSD:"дин.",EUR:"€",USD:"$"};
@@ -194,7 +195,7 @@ $("nextM").onclick=function(){switchMonth(1)};
 document.querySelectorAll(".panel").forEach(function(p){
   var cat=p.getAttribute("data-cat");
   var al=p.querySelector(".add-label"),aa=p.querySelector(".add-amount"),ab=p.querySelector(".add-btn"),asub=p.querySelector(".add-sub"),acur=p.querySelector(".add-cur");
-  if(asub){fillSubSelect(asub,"Еда");asub.onchange=function(){if(asub.value==="__new"){var n=addSubcategory();fillSubSelect(asub,n||"Еда");renderCat("variable");}};}
+  if(asub){fillSubSelect(asub,"Продукты");asub.onchange=function(){if(asub.value==="__new"){var n=addSubcategory();fillSubSelect(asub,n||"Продукты");renderCat("variable");}};}
   function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus();saveMonth();}
   ab.onclick=add;aa.addEventListener("keydown",function(e){if(e.key==="Enter")add()});
 });
@@ -210,7 +211,7 @@ function applyItems(items){
   var report=[];
   items.forEach(function(it){
     var cat=(it.cat==="income"||it.cat==="fixed"||it.cat==="variable")?it.cat:"variable";
-    var rec={l:it.l||"Без названия",a:+it.a||0,cur:(it.cur==="EUR"||it.cur==="USD"||it.cur==="RSD")?it.cur:base,by:"me",_id:"x"+Math.random()};
+    var rec={l:it.l||"Без названия",a:+it.a||0,cur:(it.cur==="EUR"||it.cur==="USD"||it.cur==="RSD")?it.cur:base,by:localStorage.getItem("app_who")||"me",_id:"x"+Math.random()};
     if(cat==="variable"){rec.sub=it.sub||"Прочее";ensureSub(rec.sub);}
     data[cat].push(rec);renderCat(cat,rec._id);
     var tail=CAT_RU[cat];if(cat==="variable")tail+=" · "+rec.sub;
@@ -501,11 +502,29 @@ function fbInit(){
     });
   }
 
+  function loadSubs(){
+    FB.getDoc(["households",FB.HID,"meta","subs"]).then(function(snap){
+      if(!snap.exists())return;
+      var d=snap.data();
+      if(d.subs)d.subs.forEach(function(s){ensureSub(s);});
+      if(d.cols)Object.keys(d.cols).forEach(function(k){SUBCOL[k]=d.cols[k];});
+      renderAll();
+    });
+  }
+
+  saveSubs=function(){
+    if(!window.FB)return;
+    var cols={};SUBS.forEach(function(s){if(SUBCOL[s])cols[s]=SUBCOL[s];});
+    FB.setDoc(["households",FB.HID,"meta","subs"],{subs:SUBS,cols:cols})
+      .catch(function(e){console.warn("saveSubs:",e.code);});
+  };
+
   var _origSwitch=switchMonth;
   switchMonth=function(d){_origSwitch(d);attachSnapshot(curKey);};
 
   attachSnapshot(curKey);
   loadGoals();
+  loadSubs();
 }
 
 if(window.FB){fbInit();}
