@@ -341,10 +341,7 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
   .goals-dark{padding:18px 16px}
   .goals-dark .section-head{flex-direction:column;align-items:flex-start;gap:12px}
   .goals-dark .goals-list{grid-template-columns:1fr;gap:12px}
-  .goal-card{padding:16px 12px;display:flex;flex-direction:row;align-items:center;gap:14px;text-align:left}
-  .dot-ring{flex:none}
-  .goal-stats{flex:1;min-width:0}
-  .goal-actions{width:100%}
+  .goal-card{padding:16px 12px}
   .dot-ring{width:110px;height:110px}
   .dot-ring svg{width:110px;height:110px}
   .dot-ring .pct{font-size:22px}
