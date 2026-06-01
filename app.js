@@ -238,7 +238,7 @@ function handleSend(){
   fetch(CLAUDE_FUNCTION_URL,{method:"POST",body:payload})
   .then(function(r){return r.json()}).then(function(d){
     loadEl.remove();
-    if(!d.items||!d.items.length){addMsg("Не понял. Попробуй: <b>продукты 2500, такси 600</b>","bot");return;}
+    if(!d.items||!d.items.length){addMsg("Не нашёл расходов. Напиши например: <b>продукты 892, кофе 350</b>","bot");return;}
     var report=applyItems(d.items);
     addMsg("Добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
   }).catch(function(){
