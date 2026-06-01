@@ -3,31 +3,29 @@ var ACCESS_CODE = "budget2026";
 
 // Код-экран
 (function(){
-  var gate=$("codeGate");
+  function gi(id){return document.getElementById(id);}
+  var gate=gi("codeGate");
   if(!gate)return;
   if(localStorage.getItem("app_access")==="1"){gate.style.display="none";return;}
   gate.style.display="flex";
   document.querySelector(".main") && (document.querySelector(".main").style.display="none");
   document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="none");
   function tryCode(){
-    var v=$("codeInput").value.trim();
+    var v=gi("codeInput").value.trim();
     if(v===ACCESS_CODE){
       localStorage.setItem("app_access","1");
       gate.style.display="none";
       document.querySelector(".main") && (document.querySelector(".main").style.display="");
       document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="");
     } else {
-      $("codeErr").textContent="Неверный код";
-      $("codeInput").value="";
+      gi("codeErr").textContent="Неверный код";
+      gi("codeInput").value="";
     }
   }
-  $("codeBtn").onclick=tryCode;
-  $("codeInput").onkeydown=function(e){if(e.key==="Enter")tryCode();};
-  $("lockBtn") && ($("lockBtn").style.display="");
-  $("lockBtn") && ($("lockBtn").onclick=function(){
-    localStorage.removeItem("app_access");
-    location.reload();
-  });
+  gi("codeBtn").onclick=tryCode;
+  gi("codeInput").onkeydown=function(e){if(e.key==="Enter")tryCode();};
+  var lb=gi("lockBtn");
+  if(lb){lb.style.display="";lb.onclick=function(){localStorage.removeItem("app_access");location.reload();};}
 })();
 
 // Заглушки — fbInit() заменит на реальные Firestore-функции
