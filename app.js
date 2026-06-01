@@ -16,7 +16,7 @@ var curKey="2026-05";
 var data=MONTHS[curKey];
 var PEOPLE={me:{name:"Oldione",color:"#2d63f5"},her:{name:"Вероника",color:"#c06b8a"}};
 var filterWho="all";
-var goals=[{n:"Отпуск в Греции",t:2000,s:850,c:"EUR"},{n:"Подушка безопасности",t:300000,s:186000,c:"RSD"}];
+var goals=[{n:"Отпуск в Греции",t:2000,s:{me:850,her:0},c:"EUR"},{n:"Подушка безопасности",t:300000,s:{me:0,her:186000},c:"RSD"}];
 var archived=[{n:"Новый ноут",s:1400,c:"EUR",closed:"март 2026"}];
 var GSYM={RSD:"дин.",EUR:"€"};
 var MN=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
@@ -258,44 +258,71 @@ function renderLineChart(){
 
 /* ── ЦЕЛИ (dot-ring) ── */
 function gfmt(n,c){return nf.format(Math.round(n))+" "+(c==="EUR"?"€":"дин.")}
-var GOAL_C=2*Math.PI*54; // full circumference r=54
+var GOAL_C=2*Math.PI*54;
+function gSaved(g){if(typeof g.s==="number")return g.s;return (g.s&&g.s.me||0)+(g.s&&g.s.her||0);}
+function gNorm(g){if(typeof g.s==="number"){g.s={me:g.s,her:0};}}
 function renderGoals(){
   var wrap=$("gList");wrap.innerHTML="";
   if(!goals.length){wrap.innerHTML='<p style="color:rgba(255,255,255,.45);font-size:14px">Активных целей нет.</p>';return}
   goals.forEach(function(g){
-    var pct=g.t>0?Math.min(100,g.s/g.t*100):0;
-    var left=Math.max(0,g.t-g.s);var done=g.t>0&&g.s>=g.t;
-    // dot-ring: track = full circle dashed, fill = solid partial arc
-    var fillLen=GOAL_C*pct/100;var fillOff=0; // starts at top (already rotated -90)
-    var emptyOff=fillLen; // offset for the dot track so dots appear in the empty part
-    var trackOff=-(GOAL_C*pct/100); // shift dots to start after fill
+    gNorm(g);
+    var saved=gSaved(g);
+    var pct=g.t>0?Math.min(100,saved/g.t*100):0;
+    var left=Math.max(0,g.t-saved);
+    var done=g.t>0&&saved>=g.t;
+    var meLen=g.t>0?Math.min(GOAL_C,GOAL_C*(g.s.me||0)/g.t):0;
+    var herLen=g.t>0?Math.min(GOAL_C-meLen,GOAL_C*(g.s.her||0)/g.t):0;
+    var meCol=PEOPLE.me.color;var herCol=PEOPLE.her.color;
     var actions=done
       ? '<button class="goal-archive-btn">В архив ✓</button>'
-      : '<div class="goal-actions"><input class="goal-add-input" type="number" placeholder="Отложить"><button class="goal-add-btn">+</button></div>';
+      : '<div class="goal-actions">'+
+          '<div class="goal-who">'+
+            '<button class="gwho active" data-who="me">'+PEOPLE.me.name+'</button>'+
+            '<button class="gwho" data-who="her">'+PEOPLE.her.name+'</button>'+
+          '</div>'+
+          '<div class="goal-actions-row">'+
+            '<input class="goal-add-input" type="number" placeholder="Сумма">'+
+            '<button class="goal-add-btn">+</button>'+
+          '</div>'+
+        '</div>';
     var el=document.createElement("div");el.className="goal-card"+(done?" done":"");
     el.innerHTML='<button class="goal-del">×</button>'+
       '<div class="goal-name"></div>'+
       '<div class="dot-ring">'+
         '<svg width="130" height="130" viewBox="0 0 130 130" style="transform:rotate(-90deg)">'+
-          // dashed track (full circle, always visible)
           '<circle cx="65" cy="65" r="54" class="ring-track"/>'+
-          // solid fill arc
-          '<circle cx="65" cy="65" r="54" class="ring-fill" stroke-dasharray="'+fillLen+' '+GOAL_C+'" stroke-dashoffset="0" stroke="rgba(255,255,255,.95)"/>'+
+          (meLen>0?'<circle cx="65" cy="65" r="54" class="ring-fill" stroke-dasharray="'+meLen+' '+GOAL_C+'" stroke-dashoffset="0" stroke="'+meCol+'"/>':'')+
+          (herLen>0?'<circle cx="65" cy="65" r="54" class="ring-fill" stroke-dasharray="'+herLen+' '+GOAL_C+'" stroke-dashoffset="'+(-meLen)+'" stroke="'+herCol+'"/>':'')+
         '</svg>'+
         '<div class="ctr"><span class="pct">'+Math.round(pct)+'<small>%</small></span></div>'+
       '</div>'+
       '<div class="goal-stats">'+
-        '<div><span class="lab">Накоплено</span><span class="val in">'+gfmt(g.s,g.c)+'</span></div>'+
+        '<div>'+
+          '<span class="lab">Накоплено</span>'+
+          '<span class="val in">'+gfmt(saved,g.c)+'</span>'+
+          '<div class="goal-contrib">'+
+            '<span style="color:'+meCol+'">'+PEOPLE.me.name+' '+gfmt(g.s.me||0,g.c)+'</span>'+
+            '<span style="color:'+herCol+'">'+PEOPLE.her.name+' '+gfmt(g.s.her||0,g.c)+'</span>'+
+          '</div>'+
+        '</div>'+
         '<div style="text-align:right"><span class="lab">Осталось</span><span class="val left">'+gfmt(left,g.c)+'</span></div>'+
       '</div>'+actions;
     el.querySelector(".goal-name").textContent=g.n;
     el.querySelector(".goal-del").onclick=function(){goals=goals.filter(function(x){return x!==g});renderGoals();saveGoals();};
     if(done){
-      el.querySelector(".goal-archive-btn").onclick=function(){archived.unshift({n:g.n,s:g.s,c:g.c,closed:monthName(curKey)});goals=goals.filter(function(x){return x!==g});renderGoals();renderArchive();saveGoals();};
+      el.querySelector(".goal-archive-btn").onclick=function(){
+        archived.unshift({n:g.n,s:saved,c:g.c,closed:monthName(curKey)});
+        goals=goals.filter(function(x){return x!==g});
+        renderGoals();renderArchive();saveGoals();
+      };
     }else{
       var gi=el.querySelector(".goal-add-input");
-      function addc(){var v=+gi.value||0;if(!v)return;g.s+=v;renderGoals();saveGoals();}
-      el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc()});
+      var activeWho="me";
+      el.querySelectorAll(".gwho").forEach(function(b){
+        b.onclick=function(){activeWho=b.getAttribute("data-who");el.querySelectorAll(".gwho").forEach(function(x){x.classList.toggle("active",x===b);});};
+      });
+      function addc(){var v=+gi.value||0;if(!v)return;g.s[activeWho]=(g.s[activeWho]||0)+v;gi.value="";renderGoals();saveGoals();}
+      el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
     }
     wrap.appendChild(el);
   });
@@ -310,7 +337,7 @@ function renderArchive(){
     el.querySelector(".arc-name").textContent=a.n;list.appendChild(el);
   });
 }
-$("gAdd").onclick=function(){var n=$("gName").value.trim(),t=+$("gTarget").value||0,c=$("gCur").value;if(!n)return;goals.push({n:n,t:t,s:0,c:c});$("gName").value="";$("gTarget").value="";renderGoals();saveGoals();};
+$("gAdd").onclick=function(){var n=$("gName").value.trim(),t=+$("gTarget").value||0,c=$("gCur").value;if(!n)return;goals.push({n:n,t:t,s:{me:0,her:0},c:c});$("gName").value="";$("gTarget").value="";renderGoals();saveGoals();};
 
 /* ── ЭКСПОРТ CSV ── */
 $("exportBtn").onclick=function(){
