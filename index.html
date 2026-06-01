@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Семейный бюджет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo">бюд<span>жет</span></div>
+  <div class="nav-pills">
+    <button class="nav-pill active" data-scroll="top">Дашборд</button>
+    <button class="nav-pill" data-scroll="sec-panels">Расходы</button>
+    <button class="nav-pill" data-scroll="sec-goals">Цели</button>
+    <button class="nav-pill" data-scroll="sec-chart">Аналитика</button>
+  </div>
+  <div class="nav-right">
+    <div class="base-cur">
+      <button class="bcur active" data-cur="RSD">дин.</button>
+      <button class="bcur" data-cur="EUR">€</button>
+    </div>
+    <span class="rates-note" id="ratesNote">курс загружается…</span>
+    <button class="export-btn" id="exportBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      CSV
+    </button>
+    <div class="user-chip">
+      <div class="user-photo">О</div>
+      <span>Oldione</span>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- WELCOME -->
+  <div class="welcome">
+    <div class="welcome-title">Добро пожаловать, Oldione 👋</div>
+    <div class="welcome-sub" id="welcomeSub">Загружаем данные…</div>
+  </div>
+
+  <!-- FILTER + MONTH ROW -->
+  <div class="filter-row">
+    <div class="filter-pills">
+      <span class="filter-label">Показать:</span>
+      <button class="fchip active" data-who="all">Вместе</button>
+      <button class="fchip" data-who="me"><span class="fdot" style="background:#2d63f5"></span>Oldione</button>
+      <button class="fchip" data-who="her"><span class="fdot" style="background:#c06b8a"></span>Вероника</button>
+    </div>
+    <div class="month-nav">
+      <button class="month-btn" id="prevM">‹</button>
+      <span class="month-label" id="monthLabel">май 2026</span>
+      <button class="month-btn" id="nextM">›</button>
+    </div>
+  </div>
+
+  <!-- MONTH PROGRESS -->
+  <div class="month-progress">
+    <span class="mp-label" id="mpLabel">—</span>
+    <div class="mp-bar-wrap"><div class="mp-bar" id="mpBar" style="width:0%"></div></div>
+    <span class="mp-right" id="mpRight"></span>
+  </div>
+
+  <!-- SUMMARY -->
+  <section class="summary">
+    <div class="sum-card sum-income">
+      <div class="sum-label">Доходы</div>
+      <div class="sum-value" id="vInc">0</div>
+      <div class="sum-badge">↑ этот месяц</div>
+    </div>
+    <div class="sum-card sum-expense">
+      <div class="sum-label">Расходы</div>
+      <div class="sum-value" id="vExp">0</div>
+      <div class="sum-hint">↓ от доходов</div>
+    </div>
+    <div class="sum-card sum-balance">
+      <div class="sum-label">Можно отложить</div>
+      <div class="sum-value" id="vBal">0</div>
+      <div class="sum-rate" id="vRate"></div>
+    </div>
+  </section>
+
+  <!-- LINE CHART -->
+  <div class="line-chart" id="sec-chart">
+    <div class="lc-head">
+      <h2>Доходы и расходы по месяцам</h2>
+      <div class="lc-legend">
+        <span class="lc-leg"><span class="lc-leg-dot" style="background:var(--accent)"></span>Доходы</span>
+        <span class="lc-leg"><span class="lc-leg-dot" style="background:var(--warm)"></span>Расходы</span>
+      </div>
+    </div>
+    <svg id="lcSvg" class="lc-svg" viewBox="0 0 800 146"></svg>
+  </div>
+
+  <!-- PIE + CHAT -->
+  <div class="two-col" style="margin-bottom:22px">
+    <div class="exp-chart" id="expChart">
+      <div class="ec-head">
+        <div class="ec-title">
+          <h2>Разбивка расходов</h2>
+          <div class="ec-total" id="pieTotal">0</div>
+        </div>
+        <div class="ec-toggle">
+          <button class="ectab active" data-dim="what">На что</button>
+          <button class="ectab" data-dim="who">Кто</button>
+        </div>
+      </div>
+      <div class="ec-body">
+        <div class="ec-pie">
+          <svg id="pieSvg" width="180" height="180" viewBox="0 0 180 180"></svg>
+          <div class="ec-center" id="pieCenter"></div>
+        </div>
+        <div class="ec-legend" id="pieLegend"></div>
+      </div>
+    </div>
+    <div class="chat">
+      <div class="chat-head">
+        <h2>Быстрое добавление</h2>
+        <div class="hint">напиши «продукты 2500, такси 600» или прикрепи чек</div>
+      </div>
+      <div class="chat-log" id="chatLog"></div>
+      <div class="chat-row">
+        <button class="icon-btn" id="photoBtn" title="Прикрепить чек">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none"/>
+        <input type="text" class="chat-input" id="chatInput" placeholder="Что купили и на сколько…"/>
+        <button class="send-btn" id="sendBtn">Добавить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- THREE PANELS -->
+  <div class="section-label" id="sec-panels">Детали за месяц</div>
+  <div class="three-col">
+    <div class="panel" data-cat="income">
+      <div class="panel-head"><h2>Доходы</h2><span class="panel-total" id="tInc">0</span></div>
+      <ul class="items" id="lInc"></ul>
+      <div class="add-row">
+        <input class="add-label" placeholder="Зарплата…"/>
+        <input class="add-amount" type="number" placeholder="0"/>
+        <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
+        <button class="add-btn">+</button>
+      </div>
+    </div>
+    <div class="panel" data-cat="fixed">
+      <div class="panel-head"><h2>Обязательные</h2><span class="panel-total" id="tFix">0</span></div>
+      <button class="copy-fixed" id="copyFixed">↻ скопировать из прошлого месяца</button>
+      <ul class="items" id="lFix"></ul>
+      <div class="add-row">
+        <input class="add-label" placeholder="Аренда…"/>
+        <input class="add-amount" type="number" placeholder="0"/>
+        <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
+        <button class="add-btn">+</button>
+      </div>
+    </div>
+    <div class="panel" data-cat="variable">
+      <div class="panel-head"><h2>Переменные</h2><span class="panel-total" id="tVar">0</span></div>
+      <ul class="items" id="lVar"></ul>
+      <div class="sub-breakdown" id="varBreak"></div>
+      <div class="add-row">
+        <input class="add-label" placeholder="Еда…"/>
+        <select class="add-sub"><option>Еда</option><option>Транспорт</option><option>Авто</option><option>Развлечения</option><option>Дом</option><option>Здоровье</option><option>Прочее</option></select>
+        <input class="add-amount" type="number" placeholder="0"/>
+        <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
+        <button class="add-btn">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOALS (DARK CARD) -->
+  <div class="section-label" id="sec-goals">Финансовые цели</div>
+  <div class="goals-dark">
+    <div class="section-head">
+      <h2>Цели</h2>
+      <div class="add-goal">
+        <input class="add-label" id="gName" placeholder="Отпуск, подушка…" style="max-width:170px"/>
+        <input class="add-amount" id="gTarget" type="number" placeholder="Сумма"/>
+        <select class="add-cur" id="gCur" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff"><option value="RSD">дин.</option><option value="EUR">€</option></select>
+        <button class="add-btn" id="gAdd" style="background:rgba(255,255,255,.18);box-shadow:none">+ цель</button>
+      </div>
+    </div>
+    <div class="goals-list" id="gList"></div>
+  </div>
+
+  <!-- ARCHIVE -->
+  <div class="section-label">Закрытые цели</div>
+  <div class="archive" id="archiveSection">
+    <div class="archive-head">
+      <h2>Архив</h2>
+      <span class="archive-count" id="arcCount"></span>
+    </div>
+    <div class="archive-list" id="arcList"></div>
+  </div>
+
+</div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
