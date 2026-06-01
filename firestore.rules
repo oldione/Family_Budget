@@ -1,17 +1,9 @@
 rules_version = '2';
 
-// Доступ к бюджету только у двух разрешённых аккаунтов.
-// UID показывается в приложении после входа — вставь сюда оба, затем Publish.
 service cloud.firestore {
   match /databases/{database}/documents {
-    function allowed() {
-      return request.auth != null && request.auth.uid in [
-        "ВСТАВЬ_UID_ПЕРВОГО",
-        "ВСТАВЬ_UID_ВТОРОГО"
-      ];
-    }
     match /households/{hid}/{document=**} {
-      allow read, write: if allowed();
+      allow read, write: if request.auth != null;
     }
   }
 }

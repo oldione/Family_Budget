@@ -1,4 +1,34 @@
 var CLAUDE_FUNCTION_URL = "https://claudechat-vwvivsoxwa-ew.a.run.app";
+var ACCESS_CODE = "budget2026";
+
+// Код-экран
+(function(){
+  var gate=$("codeGate");
+  if(!gate)return;
+  if(localStorage.getItem("app_access")==="1"){gate.style.display="none";return;}
+  gate.style.display="flex";
+  document.querySelector(".main") && (document.querySelector(".main").style.display="none");
+  document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="none");
+  function tryCode(){
+    var v=$("codeInput").value.trim();
+    if(v===ACCESS_CODE){
+      localStorage.setItem("app_access","1");
+      gate.style.display="none";
+      document.querySelector(".main") && (document.querySelector(".main").style.display="");
+      document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="");
+    } else {
+      $("codeErr").textContent="Неверный код";
+      $("codeInput").value="";
+    }
+  }
+  $("codeBtn").onclick=tryCode;
+  $("codeInput").onkeydown=function(e){if(e.key==="Enter")tryCode();};
+  $("lockBtn") && ($("lockBtn").style.display="");
+  $("lockBtn") && ($("lockBtn").onclick=function(){
+    localStorage.removeItem("app_access");
+    location.reload();
+  });
+})();
 
 // Заглушки — fbInit() заменит на реальные Firestore-функции
 var saveMonth = function(){};
@@ -378,7 +408,7 @@ function fbInit(){
   }
 
   saveMonth=function(){
-    if(!window._fbUser)return;
+    if(!window.FB)return;
     FB.setDoc(["households",FB.HID,"months",curKey],{
       income:data.income.map(cleanRec),
       fixed:data.fixed.map(cleanRec),
@@ -389,7 +419,7 @@ function fbInit(){
   saveMonthDebounced=function(){clearTimeout(_saveTimer);_saveTimer=setTimeout(saveMonth,700);};
 
   saveGoals=function(){
-    if(!window._fbUser)return;
+    if(!window.FB)return;
     FB.setDoc(["households",FB.HID,"meta","goals"],{goals:goals,archived:archived})
       .catch(function(e){console.warn("saveGoals:",e.code);});
   };
@@ -413,34 +443,10 @@ function fbInit(){
   }
 
   var _origSwitch=switchMonth;
-  switchMonth=function(d){_origSwitch(d);if(window._fbUser)attachSnapshot(curKey);};
+  switchMonth=function(d){_origSwitch(d);attachSnapshot(curKey);};
 
-  function updateAuthUI(user){
-    var btn=$("loginBtn"),chip=$("userChip"),uname=$("userName"),uphoto=$("userPhoto");
-    if(user){
-      btn.style.display="none";chip.style.display="flex";
-      var firstName=(user.displayName||user.email).split(" ")[0];
-      uname.textContent=firstName;
-      uphoto.textContent=firstName[0].toUpperCase();
-      $("welcomeTitle").textContent="Добро пожаловать, "+firstName+" 👋";
-      if(!$("uidBanner")){
-        var b=document.createElement("div");b.id="uidBanner";b.className="uid-banner";
-        b.innerHTML="UID для firestore.rules: <b>"+user.uid+"</b> <button class='uid-close' onclick='this.parentNode.remove()'>×</button>";
-        document.querySelector(".main").insertAdjacentElement("afterbegin",b);
-      }
-    } else {
-      btn.style.display="";chip.style.display="none";
-    }
-  }
-
-  $("loginBtn").onclick=function(){FB.signIn().catch(function(e){console.warn(e);});};
-  $("logoutBtn").onclick=function(){FB.signOut();};
-
-  FB.onAuth(function(user){
-    window._fbUser=user;
-    updateAuthUI(user);
-    if(user){attachSnapshot(curKey);loadGoals();}
-  });
+  attachSnapshot(curKey);
+  loadGoals();
 }
 
 if(window.FB){fbInit();}

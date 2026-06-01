@@ -30,14 +30,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       CSV
     </button>
-    <div id="authArea">
-      <button class="login-btn" id="loginBtn">Войти через Google</button>
-      <div class="user-chip" id="userChip" style="display:none">
-        <div class="user-photo" id="userPhoto">?</div>
-        <span id="userName">—</span>
-        <button class="logout-btn" id="logoutBtn" title="Выйти">×</button>
-      </div>
-    </div>
+    <button class="login-btn" id="lockBtn" style="display:none" title="Заблокировать">🔒</button>
   </div>
 </nav>
 
@@ -203,6 +196,17 @@
     <div class="archive-list" id="arcList"></div>
   </div>
 
+</div>
+
+<!-- CODE GATE -->
+<div id="codeGate" style="display:none;position:fixed;inset:0;background:#0f1117;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+  <div style="font-family:Manrope,sans-serif;color:#fff;font-size:28px;font-weight:700">бюд<span style="color:#2d63f5">жет</span></div>
+  <div style="color:rgba(255,255,255,.5);font-family:Manrope,sans-serif;font-size:14px">Введите код доступа</div>
+  <input id="codeInput" type="password" placeholder="••••••" autocomplete="off"
+    style="width:200px;padding:14px 18px;border-radius:14px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-size:20px;text-align:center;font-family:Manrope,sans-serif;outline:none"/>
+  <button id="codeBtn"
+    style="padding:14px 40px;border-radius:14px;background:#2d63f5;color:#fff;font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:Manrope,sans-serif">Войти</button>
+  <div id="codeErr" style="color:#e05c5c;font-family:Manrope,sans-serif;font-size:13px;min-height:18px"></div>
 </div>
 
 <script type="module" src="firebase-init.js"></script>
