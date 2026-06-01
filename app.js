@@ -234,11 +234,9 @@ function handleSend(){
   var loadId="load"+Math.random();
   addMsg("…","bot");
   var loadEl=$("chatLog").lastElementChild;
-  fetch(CLAUDE_FUNCTION_URL,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:text,subs:SUBS,base:base})
-  }).then(function(r){return r.json()}).then(function(d){
+  var payload=new Blob([JSON.stringify({message:text,subs:SUBS,base:base})],{type:"application/json"});
+  fetch(CLAUDE_FUNCTION_URL,{method:"POST",body:payload})
+  .then(function(r){return r.json()}).then(function(d){
     loadEl.remove();
     if(!d.items||!d.items.length){addMsg("Не понял. Попробуй: <b>продукты 2500, такси 600</b>","bot");return;}
     var report=applyItems(d.items);
@@ -265,7 +263,7 @@ $("photoInput").onchange=function(e){
   reader.onload=function(ev){
     var img=new Image();
     img.onload=function(){
-      var MAX=400,w=img.width,h=img.height;
+      var MAX=1200,w=img.width,h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
       else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
       var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
