@@ -1,6 +1,4 @@
-// URL Firebase Cloud Function — заполни после деплоя:
-// https://europe-west1-ТВОЙ_ПРОЕКТ.cloudfunctions.net/claudeChat
-var CLAUDE_FUNCTION_URL = "";
+var CLAUDE_FUNCTION_URL = "https://claudechat-vwvivsoxwa-ew.a.run.app";
 
 // Заглушки — fbInit() заменит на реальные Firestore-функции
 var saveMonth = function(){};
