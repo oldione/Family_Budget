@@ -85,8 +85,8 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .goal-forecast{font-size:11px;color:rgba(255,255,255,.45);margin-top:3px}
 
 /* ── SUMMARY CARDS ── */
-.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}
-.sum-card{border-radius:var(--r);padding:26px 24px 22px;border:1px solid var(--line);background:var(--paper);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.sum-card{border-radius:var(--r);padding:22px 18px 18px;border:1px solid var(--line);background:var(--paper);box-shadow:var(--shadow);position:relative;overflow:hidden}
 .sum-card::after{content:"";position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:currentColor;opacity:.04}
 .sum-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:12px}
 .sum-value{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1}
@@ -281,7 +281,7 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 /* ── TABLET 900px ── */
 @media(max-width:900px){
   .topnav .nav-pills{display:none}
-  .summary{grid-template-columns:1fr 1fr}
+  .summary{grid-template-columns:1fr 1fr;gap:10px}
   .three-col{grid-template-columns:1fr 1fr}
   .two-col{grid-template-columns:1fr}
   .main{padding:24px 20px 64px}

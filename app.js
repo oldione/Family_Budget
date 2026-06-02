@@ -384,10 +384,6 @@ function renderGoals(){
     var actions=done
       ? '<button class="goal-archive-btn">В архив ✓</button>'
       : '<div class="goal-actions">'+
-          '<div class="goal-who">'+
-            '<button class="gwho active" data-who="me">'+PEOPLE.me.name+'</button>'+
-            '<button class="gwho" data-who="her">'+PEOPLE.her.name+'</button>'+
-          '</div>'+
           '<div class="goal-actions-row">'+
             '<input class="goal-add-input" type="number" placeholder="Сумма">'+
             '<button class="goal-add-btn">+</button>'+
@@ -428,10 +424,6 @@ function renderGoals(){
     }else{
       var gi=el.querySelector(".goal-add-input");
       var activeWho=localStorage.getItem("app_who")||"me";
-      el.querySelectorAll(".gwho").forEach(function(b){
-        b.classList.toggle("active",b.getAttribute("data-who")===activeWho);
-        b.onclick=function(){activeWho=b.getAttribute("data-who");el.querySelectorAll(".gwho").forEach(function(x){x.classList.toggle("active",x===b);});};
-      });
       function addc(){var v=+gi.value||0;if(!v)return;g.s[activeWho]=(g.s[activeWho]||0)+v;gi.value="";renderGoals();saveGoals();}
       el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
     }
