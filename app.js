@@ -136,6 +136,10 @@ function totals(){
   $("vInc").textContent=fmt(inc);$("vExp").textContent=fmt(exp);$("vBal").textContent=fmt(bal);
   var rt=inc>0?Math.round(bal/inc*100):0;
   $("vRate").textContent=inc>0?(bal<0?"перерасход "+Math.abs(rt)+"%":rt+"% от доходов"):"";
+  var who=localStorage.getItem("app_who")||"all";
+  var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(who==="all"?gSaved(g):(g.s[who]||0),g.c);},0);
+  if($("vSaved"))$("vSaved").textContent=fmt(totalSaved);
+  if($("vSavedSub"))$("vSavedSub").textContent=goals.length?goals.length+" "+(goals.length===1?"цель":"цели"):"нет целей";
   // welcome sub
   var ws=$("welcomeSub");if(ws){var mn=monthName(curKey);ws.textContent=mn.charAt(0).toUpperCase()+mn.slice(1)+" · доходы "+fmt(inc)+" · расходы "+fmt(exp)}
   renderPie();
@@ -402,8 +406,9 @@ function renderGoals(){
       };
     }else{
       var gi=el.querySelector(".goal-add-input");
-      var activeWho="me";
+      var activeWho=localStorage.getItem("app_who")||"me";
       el.querySelectorAll(".gwho").forEach(function(b){
+        b.classList.toggle("active",b.getAttribute("data-who")===activeWho);
         b.onclick=function(){activeWho=b.getAttribute("data-who");el.querySelectorAll(".gwho").forEach(function(x){x.classList.toggle("active",x===b);});};
       });
       function addc(){var v=+gi.value||0;if(!v)return;g.s[activeWho]=(g.s[activeWho]||0)+v;gi.value="";renderGoals();saveGoals();}
