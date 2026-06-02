@@ -80,6 +80,9 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .mp-bar-wrap{flex:1;min-width:140px;height:7px;background:var(--bg);border-radius:99px;overflow:hidden}
 .mp-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.4,0,.2,1)}
 .mp-right{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.mp-pulse{font-size:12px;font-weight:600;margin:-12px 0 12px 22px;min-height:16px}
+.mp-pulse.ok{color:#2a7a4f}.mp-pulse.warn{color:#c05a2a}
+.goal-forecast{font-size:11px;color:rgba(255,255,255,.45);margin-top:3px}
 
 /* ── SUMMARY CARDS ── */
 .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:22px}

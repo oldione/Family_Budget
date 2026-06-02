@@ -139,7 +139,8 @@ function totals(){
   var who=localStorage.getItem("app_who")||"all";
   var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(who==="all"?gSaved(g):(g.s[who]||0),g.c);},0);
   if($("vSaved"))$("vSaved").textContent=fmt(totalSaved);
-  if($("vSavedSub"))$("vSavedSub").textContent=goals.length?goals.length+" "+(goals.length===1?"цель":"цели"):"нет целей";
+  var savePct=inc>0?Math.round(totalSaved/inc*100):0;
+  if($("vSavedSub"))$("vSavedSub").textContent=goals.length?(savePct+"% от дохода · "+goals.length+" "+(goals.length===1?"цель":"цели")):"нет целей";
   // welcome sub
   var ws=$("welcomeSub");if(ws){var mn=monthName(curKey);ws.textContent=mn.charAt(0).toUpperCase()+mn.slice(1)+" · доходы "+fmt(inc)+" · расходы "+fmt(exp)}
   renderPie();
@@ -314,8 +315,26 @@ function renderMonthProgress(){
   $("mpBar").style.width=pct+"%";$("mpLabel").textContent="День "+dayNow+" из "+daysInMonth;
   var left=daysInMonth-dayNow;
   $("mpRight").textContent=isCur?(left===0?"последний день":left+" "+plurDays(left)+" до конца"):"архивный месяц";
+  if(isCur){
+    var inc=csum(data.income),exp=csum(data.fixed)+csum(data.variable);
+    var spentPct=inc>0?exp/inc*100:0;var dayPct=pct;
+    var pulse=$("mpPulse");
+    if(pulse){
+      if(inc===0){pulse.textContent="";pulse.className="mp-pulse";}
+      else if(spentPct>dayPct+15){pulse.textContent="⚠ расходы опережают план";pulse.className="mp-pulse warn";}
+      else if(spentPct<dayPct-20){pulse.textContent="✓ расходы в норме";pulse.className="mp-pulse ok";}
+      else{pulse.textContent="≈ по плану";pulse.className="mp-pulse ok";}
+    }
+  }
 }
 function plurDays(n){var a=n%10,b=n%100;if(a===1&&b!==11)return"день";if(a>=2&&a<=4&&(b<10||b>=20))return"дня";return"дней"}
+function plurMonths(n){var a=n%10,b=n%100;if(a===1&&b!==11)return"месяц";if(a>=2&&a<=4&&(b<10||b>=20))return"месяца";return"месяцев"}
+function avgMonthlyBalance(){
+  var keys=Object.keys(MONTHS).filter(function(k){var m=MONTHS[k];return m.income.length||m.fixed.length||m.variable.length;});
+  if(!keys.length)return 0;
+  var total=keys.reduce(function(s,k){var m=MONTHS[k];return s+csum(m.income)-csum(m.fixed)-csum(m.variable);},0);
+  return total/keys.length;
+}
 
 /* ── ЛИНЕЙНЫЙ ГРАФИК ── */
 function renderLineChart(){
@@ -394,7 +413,9 @@ function renderGoals(){
             '<span style="color:'+herCol+'">'+PEOPLE.her.name+' '+gfmt(g.s.her||0,g.c)+'</span>'+
           '</div>'+
         '</div>'+
-        '<div style="text-align:right"><span class="lab">Осталось</span><span class="val left">'+gfmt(left,g.c)+'</span></div>'+
+        '<div style="text-align:right"><span class="lab">Осталось</span><span class="val left">'+gfmt(left,g.c)+'</span>'+
+          (function(){if(!left)return"";var avg=avgMonthlyBalance();if(avg<=0)return"";var mo=Math.ceil(toBase(left,g.c)/avg);return'<div class="goal-forecast">~'+mo+' '+plurMonths(mo)+'</div>';}())+
+        '</div>'+
       '</div>'+actions;
     el.querySelector(".goal-name").textContent=g.n;
     el.querySelector(".goal-del").onclick=function(){goals=goals.filter(function(x){return x!==g});renderGoals();saveGoals();};
