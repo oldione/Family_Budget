@@ -509,8 +509,20 @@ function fbInit(){
       var d=snap.data();
       MONTHS[key]={income:d.income||[],fixed:d.fixed||[],variable:d.variable||[]};
       (MONTHS[key].variable||[]).forEach(function(it){if(it.sub)ensureSub(it.sub);});
-      if(key===curKey){data=MONTHS[key];renderAll();}
+      if(key===curKey){data=MONTHS[key];renderAll();renderLineChart();}
     },function(err){console.warn("snapshot:",err.code);});
+  }
+
+  function loadHistory(){
+    var keys=[];for(var i=1;i<=5;i++)keys.push(shiftKey(curKey,-i));
+    keys.forEach(function(k){
+      FB.getDoc(["households",FB.HID,"months",k]).then(function(snap){
+        if(!snap.exists())return;
+        var d=snap.data();
+        MONTHS[k]={income:d.income||[],fixed:d.fixed||[],variable:d.variable||[]};
+        renderLineChart();
+      });
+    });
   }
 
   function loadGoals(){
@@ -543,6 +555,7 @@ function fbInit(){
   attachSnapshot(curKey);
   loadGoals();
   loadSubs();
+  loadHistory();
 }
 
 if(window.FB){fbInit();}
