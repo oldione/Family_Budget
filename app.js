@@ -136,8 +136,7 @@ function totals(){
   $("vInc").textContent=fmt(inc);$("vExp").textContent=fmt(exp);$("vBal").textContent=fmt(bal);
   var rt=inc>0?Math.round(bal/inc*100):0;
   $("vRate").textContent=inc>0?(bal<0?"перерасход "+Math.abs(rt)+"%":rt+"% от доходов"):"";
-  var who=localStorage.getItem("app_who")||"all";
-  var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(who==="all"?gSaved(g):(g.s[who]||0),g.c);},0);
+  var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(filterWho==="all"?gSaved(g):(g.s[filterWho]||0),g.c);},0);
   if($("vSaved"))$("vSaved").textContent=fmt(totalSaved);
   var savePct=inc>0?Math.round(totalSaved/inc*100):0;
   if($("vSavedSub"))$("vSavedSub").textContent=goals.length?(savePct+"% от дохода · "+goals.length+" "+(goals.length===1?"цель":"цели")):"нет целей";
