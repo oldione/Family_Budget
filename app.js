@@ -422,9 +422,9 @@ function avgMonthlyBalance(){
 function renderLineChart(){
   var svg=$("lcSvg");svg.innerHTML="";
   var keys=[];var k=curKey;for(var i=0;i<6;i++){keys.unshift(k);k=shiftKey(k,-1)}
-  var incArr=[],expArr=[];
-  keys.forEach(function(mk){var m=MONTHS[mk];if(!m){incArr.push(0);expArr.push(0);return}incArr.push(csum(m.income));expArr.push(csum(m.fixed)+csum(m.variable))});
-  var allVals=incArr.concat(expArr).filter(function(v){return v>0});
+  var incArr=[],expArr=[],balArr=[];
+  keys.forEach(function(mk){var m=MONTHS[mk];if(!m){incArr.push(0);expArr.push(0);balArr.push(0);return}var inc=csum(m.income),exp=csum(m.fixed)+csum(m.variable);incArr.push(inc);expArr.push(exp);balArr.push(Math.max(0,inc-exp))});
+  var allVals=incArr.concat(expArr).concat(balArr).filter(function(v){return v>0});
   var maxVal=allVals.length?Math.max.apply(null,allVals)*1.18:1;
   var W=800,H=130,PX=0,PY=12;var n=keys.length;
   function xOf(i){return PX+i*(W-PX*2)/(n-1)}
@@ -441,7 +441,7 @@ function renderLineChart(){
       if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);t.textContent=v>=1000?Math.round(v/1000)+"к":Math.round(v);svg.appendChild(t)}
     });
   }
-  makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");
+  makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");makeLine(balArr,"#4caf7d");
   keys.forEach(function(mk,i){var p2=mk.split("-");var lbl=MN[+p2[1]-1].slice(0,3)+" "+p2[0].slice(2);var t=document.createElementNS(NS,"text");t.setAttribute("x",xOf(i));t.setAttribute("y",H+4);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("fill","#8a96b0");t.setAttribute("font-weight","600");t.textContent=lbl;svg.appendChild(t)});
   svg.setAttribute("viewBox","0 0 "+W+" "+(H+16));
 }
