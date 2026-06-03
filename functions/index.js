@@ -9,69 +9,66 @@ const CORS_HEADERS = {
 
 exports.claudeChat = onRequest({ region: "europe-west1", invoker: "public" }, (req, res) => {
   Object.entries(CORS_HEADERS).forEach(([k, v]) => res.set(k, v));
-
-  if (req.method === "OPTIONS") {
-    res.status(204).send("");
-    return;
-  }
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
   const apiKey = process.env.CLAUDE_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ error: "CLAUDE_API_KEY not set" });
-    return;
-  }
+  if (!apiKey) { res.status(500).json({ error: "CLAUDE_API_KEY not set" }); return; }
 
-  const { message, image, imageType, subs, base } = req.body || {};
-  if (!message && !image) {
-    res.status(400).json({ error: "message or image required" });
-    return;
-  }
+  const { message, image, imageType, subs, base, history, context } = req.body || {};
+  if (!message && !image) { res.status(400).json({ error: "message or image required" }); return; }
 
-  const subsStr = (subs || []).join(", ") || "Еда, Транспорт, Авто, Развлечения, Дом, Здоровье, Прочее";
+  const subsStr = (subs || []).join(", ") || "Продукты, Кафе, Транспорт, Авто, Развлечения, Дом, Здоровье, Прочее";
   const baseCur = base || "RSD";
 
-  const system = `Ты — ассистент семейного бюджета. Пользователь пишет по-русски о тратах или доходах, или прикрепляет фото чека.
-Верни ТОЛЬКО валидный JSON-массив, без пояснений, без markdown:
+  const contextStr = context ? `\nТекущие данные месяца:\n${JSON.stringify(context, null, 1)}` : "";
+
+  const system = `Ты — ассистент семейного бюджета. Пользователь общается по-русски.
+
+У тебя два режима ответа:
+
+**РЕЖИМ 1 — ДОБАВЛЕНИЕ** (пользователь описывает траты/доходы):
+Верни ТОЛЬКО JSON-массив без пояснений:
 [{"l":"название","a":число,"cur":"RSD"|"EUR"|"USD","cat":"income"|"fixed"|"variable","sub":"подкатегория"}]
 
+**РЕЖИМ 2 — ВОПРОС / РЕДАКТИРОВАНИЕ** (вопрос, просьба исправить, объяснение):
+Верни JSON-объект:
+{"text":"ответ пользователю","edits":[{"l":"название позиции","sub":"новая подкатегория","cat":"новая категория"}]}
+edits — опционально, только если нужно что-то изменить.
+
 Правила категорий:
-- income: зарплата, аванс, премия, фриланс, доход, перевод, подработка
-- fixed: аренда, ипотека, кредит, связь, интернет, подписка, страховка, коммуналка, абонемент
-- variable: всё остальное (покупки, еда, транспорт, развлечения и т.д.)
+- income: зарплата, аванс, доход, фриланс
+- fixed: аренда, кредит, подписка, коммуналка
+- variable: всё остальное
 
-Доступные подкатегории для variable: ${subsStr}
-Если ни одна не подходит — придумай короткое название на русском (1-2 слова, с заглавной буквы), не используй "Прочее".
+Подкатегории для variable: ${subsStr}
+Если не подходит ни одна — придумай короткое название (1-2 слова, с заглавной буквы).
+Валюта: €/евро→EUR, $→USD, иначе→${baseCur}.
+На чеке: каждую позицию отдельно, итог не включай.
+${contextStr}`;
 
-Валюта: если явно указаны евро/€ → EUR, доллар/$→ USD, иначе → ${baseCur}.
-Если несколько позиций — верни несколько объектов. Числа без пробелов и символов валют. Название — с заглавной буквы.
-На чеке: каждую позицию как отдельный объект, итоговую сумму не включай.`;
+  // Build conversation history
+  const messages = [];
+  if (history && Array.isArray(history)) {
+    history.forEach(function(m) { messages.push({ role: m.role, content: m.content }); });
+  }
 
-  // Build user content — text only or image + text
+  // Current user message
   let userContent;
   if (image) {
     userContent = [
-      {
-        type: "image",
-        source: {
-          type: "base64",
-          media_type: imageType || "image/jpeg",
-          data: image,
-        },
-      },
-      {
-        type: "text",
-        text: message || "Это чек. Разбери все позиции и суммы, верни JSON.",
-      },
+      { type: "image", source: { type: "base64", media_type: imageType || "image/jpeg", data: image } },
+      { type: "text", text: message || "Это чек. Разбери все позиции и суммы." }
     ];
   } else {
     userContent = message;
   }
+  messages.push({ role: "user", content: userContent });
 
   const body = JSON.stringify({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system,
-    messages: [{ role: "user", content: userContent }],
+    messages,
   });
 
   const options = {
@@ -94,9 +91,14 @@ exports.claudeChat = onRequest({ region: "europe-west1", invoker: "public" }, (r
         const parsed = JSON.parse(data);
         const text = parsed.content?.[0]?.text || "";
         const clean = text.replace(/^```[a-z]*\n?/i, "").replace(/\n?```$/i, "").trim();
-        const items = JSON.parse(clean);
-        if (!Array.isArray(items)) throw new Error("not array");
-        res.json({ items });
+        const json = JSON.parse(clean);
+        if (Array.isArray(json)) {
+          res.json({ items: json, assistantText: clean });
+        } else if (json.text !== undefined) {
+          res.json({ reply: json.text, edits: json.edits || [] });
+        } else {
+          res.json({ items: [], reply: "Не понял запрос." });
+        }
       } catch (e) {
         res.status(500).json({ error: "parse_error", raw: data });
       }

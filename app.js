@@ -272,21 +272,64 @@ function handleSendLocal(text){
   var report=applyItems(mapped);
   addMsg("Добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
 }
+var chatHistory=[];
+function buildContext(){
+  var inc=data.income.slice(-5).map(function(x){return x.l+" "+x.a+x.cur});
+  var fix=data.fixed.slice(-5).map(function(x){return x.l+" "+x.a+x.cur});
+  var vr=data.variable.slice(-10).map(function(x){return x.l+" ("+x.sub+") "+x.a+x.cur});
+  return {income:inc,fixed:fix,variable:vr,month:monthName(curKey)};
+}
+function applyEdits(edits){
+  if(!edits||!edits.length)return;
+  edits.forEach(function(edit){
+    var found=false;
+    ["income","fixed","variable"].forEach(function(cat){
+      data[cat].forEach(function(item){
+        if(!found&&item.l.toLowerCase()===edit.l.toLowerCase()){
+          found=true;
+          var newCat=edit.cat||cat;
+          if(edit.sub)item.sub=edit.sub;
+          if(edit.a)item.a=+edit.a;
+          if(newCat!==cat){
+            data[cat]=data[cat].filter(function(x){return x!==item;});
+            if(newCat==="variable"&&!item.sub)item.sub=edit.sub||"Прочее";
+            data[newCat].push(item);
+          }
+        }
+      });
+    });
+  });
+  renderAll();saveMonth();
+}
 function handleSend(){
   var text=$("chatInput").value.trim();if(!text)return;
   addMsg(text.replace(/</g,"&lt;"),"me");$("chatInput").value="";
+  chatHistory.push({role:"user",content:text});
+  if(chatHistory.length>12)chatHistory=chatHistory.slice(-12);
   if(!CLAUDE_FUNCTION_URL){handleSendLocal(text);return;}
   var btn=$("sendBtn");btn.disabled=true;
-  var loadId="load"+Math.random();
   addMsg("…","bot");
   var loadEl=$("chatLog").lastElementChild;
-  var payload=new Blob([JSON.stringify({message:text,subs:SUBS,base:base})],{type:"application/json"});
+  var payload=new Blob([JSON.stringify({
+    message:text,subs:SUBS,base:base,
+    history:chatHistory.slice(0,-1),
+    context:buildContext()
+  })],{type:"application/json"});
   fetch(CLAUDE_FUNCTION_URL,{method:"POST",body:payload})
   .then(function(r){return r.json()}).then(function(d){
     loadEl.remove();
-    if(!d.items||!d.items.length){addMsg("Не нашёл расходов. Напиши например: <b>продукты 892, кофе 350</b>","bot");return;}
-    var report=applyItems(d.items);
-    addMsg("Добавил в "+monthName(curKey)+":<br>"+report.join("<br>"),"bot");
+    var botText="";
+    if(d.reply!==undefined){
+      botText=d.reply.replace(/</g,"&lt;");
+      if(d.edits&&d.edits.length){applyEdits(d.edits);botText+="<br><span style='opacity:.6;font-size:12px'>Изменения применены ✓</span>";}
+    } else if(d.items&&d.items.length){
+      var report=applyItems(d.items);
+      botText="Добавил в "+monthName(curKey)+":<br>"+report.join("<br>");
+    } else {
+      botText="Не нашёл расходов. Напиши например: <b>продукты 892, кофе 350</b>";
+    }
+    addMsg(botText,"bot");
+    chatHistory.push({role:"assistant",content:botText.replace(/<[^>]+>/g,"")});
   }).catch(function(){
     loadEl.remove();
     addMsg("Ошибка соединения — попробую локально.","bot");
