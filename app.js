@@ -59,9 +59,9 @@ var goals=[];
 var archived=[];
 var GSYM={RSD:"дин.",EUR:"€"};
 var MN=["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
-var SUBCOL={"Продукты":["#e3efe7","#1f5e44"],"Кафе":["#fce8ef","#b5468a"],"Транспорт":["#e7eef4","#33597d"],"Авто":["#f0e7da","#8a5a2b"],"Развлечения":["#f6ecd2","#8a6612"],"Дом":["#ece4ef","#6b4a7a"],"Здоровье":["#e6efe0","#4a6b2f"],"Прочее":["#ece8df","#6b6457"]};
+var SUBCOL={"Продукты":["#e8f5ee","#4caf7d"],"Кафе":["#fde8f2","#e06fa8"],"Транспорт":["#e8eef8","#5b82d6"],"Авто":["#fff3e0","#f0974a"],"Развлечения":["#f0ebff","#8b6ee0"],"Дом":["#e4f5f8","#3dbfb0"],"Здоровье":["#f0f8e8","#7ab840"],"Прочее":["#f2eee8","#a89880"]};
 var SUBS=Object.keys(SUBCOL);
-var SUB_PAL=[["#e3eef7","#2f6bf2"],["#fce8ef","#b5468a"],["#eef4e0","#6a8a2f"],["#fdeede","#c2722e"],["#e9e6f6","#5b4bbf"],["#e0f1f0","#1f7a73"],["#f3e7e7","#9a4b4b"],["#eae7df","#6b6457"]];
+var SUB_PAL=[["#e8eef8","#5b82d6"],["#fde8f2","#e06fa8"],["#e8f5ee","#4caf7d"],["#fff3e0","#f0974a"],["#f0ebff","#8b6ee0"],["#e4f5f8","#3dbfb0"],["#f8e8e8","#e06060"],["#fdf6e0","#c4a44a"],["#f0f8e8","#7ab840"],["#f5eef8","#9e6abf"]];
 var subPalIdx=0;
 function colorForSub(name){if(!SUBCOL[name]){SUBCOL[name]=SUB_PAL[subPalIdx%SUB_PAL.length];subPalIdx++;}return SUBCOL[name]}
 function ensureSub(name){if(SUBS.indexOf(name)===-1){var i=SUBS.indexOf("Прочее");if(i>=0)SUBS.splice(i,0,name);else SUBS.push(name);colorForSub(name);saveSubs();}}
@@ -154,7 +154,7 @@ $("copyFixed").onclick=function(){
   renderCat("fixed");totals();saveMonth();
 };
 var NS="http://www.w3.org/2000/svg";
-var PIE_PAL=["#2d63f5","#e0552e","#1a9e6f","#e0962a","#8b5cf6","#0ea5e9","#ec4899","#6b6457","#33597d","#c06b8a"];
+var PIE_PAL=["#5b82d6","#e06fa8","#4caf7d","#f0974a","#8b6ee0","#3dbfb0","#e06060","#c4a44a","#7ab840","#9e6abf","#4aaad4","#d46fa0"];
 var expDim="what";
 var pieDisabled={};
 var pieActive=null;
