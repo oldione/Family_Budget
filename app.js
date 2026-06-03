@@ -156,6 +156,8 @@ $("copyFixed").onclick=function(){
 var NS="http://www.w3.org/2000/svg";
 var PIE_PAL=["#2d63f5","#e0552e","#1a9e6f","#e0962a","#8b5cf6","#0ea5e9","#ec4899","#6b6457","#33597d","#c06b8a"];
 var expDim="what";
+var pieDisabled={};
+var pieActive=null;
 function expenseSlices(){
   function inF(it){return filterWho==="all"||it.by===filterWho}
   if(expDim==="who"){
@@ -174,21 +176,59 @@ function arcPath(cx,cy,a0,a1,RO,RI){
   return "M"+o0[0]+" "+o0[1]+" A"+RO+" "+RO+" 0 "+lg+" 1 "+o1[0]+" "+o1[1]+" L"+i1[0]+" "+i1[1]+" A"+RI+" "+RI+" 0 "+lg+" 0 "+i0[0]+" "+i0[1]+" Z";
 }
 function renderPie(){
-  var slices=expenseSlices().filter(function(s){return s.value>0});
+  var allSlices=expenseSlices().filter(function(s){return s.value>0});
+  var slices=allSlices.filter(function(s){return !pieDisabled[s.label]});
   var total=slices.reduce(function(s,x){return s+x.value},0);
   var svg=$("pieSvg");svg.innerHTML="";var RO=82,RI=50,cx=90,cy=90;
-  if(!total){var e=document.createElementNS(NS,"circle");e.setAttribute("cx",cx);e.setAttribute("cy",cy);e.setAttribute("r",(RO+RI)/2);e.setAttribute("fill","none");e.setAttribute("stroke","var(--line)");e.setAttribute("stroke-width",RO-RI);svg.appendChild(e);}
-  else if(slices.length===1){var c=document.createElementNS(NS,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",(RO+RI)/2);c.setAttribute("fill","none");c.setAttribute("stroke",slices[0].color);c.setAttribute("stroke-width",RO-RI);svg.appendChild(c);}
-  else{var a=0;slices.forEach(function(s){var a1=a+s.value/total*2*Math.PI;var p=document.createElementNS(NS,"path");p.setAttribute("d",arcPath(cx,cy,a,a1,RO,RI));p.setAttribute("fill",s.color);p.setAttribute("stroke","#fff");p.setAttribute("stroke-width","2");svg.appendChild(p);a=a1;});}
+  if(!total){
+    var e=document.createElementNS(NS,"circle");e.setAttribute("cx",cx);e.setAttribute("cy",cy);e.setAttribute("r",(RO+RI)/2);e.setAttribute("fill","none");e.setAttribute("stroke","var(--line)");e.setAttribute("stroke-width",RO-RI);svg.appendChild(e);
+  } else if(slices.length===1){
+    var c=document.createElementNS(NS,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r",(RO+RI)/2);c.setAttribute("fill","none");c.setAttribute("stroke",slices[0].color);c.setAttribute("stroke-width",RO-RI);
+    c.style.cursor="pointer";
+    (function(sl){c.onclick=function(){pieActive=pieActive===sl.label?null:sl.label;renderPie();};})(slices[0]);
+    svg.appendChild(c);
+  } else {
+    var a=0;
+    slices.forEach(function(s){
+      var a1=a+s.value/total*2*Math.PI;
+      var p=document.createElementNS(NS,"path");
+      p.setAttribute("d",arcPath(cx,cy,a,a1,RO,RI));
+      p.setAttribute("fill",s.color);
+      p.setAttribute("stroke","#fff");
+      p.setAttribute("stroke-width",pieActive===s.label?"4":"2");
+      p.style.opacity=pieActive&&pieActive!==s.label?"0.35":"1";
+      p.style.cursor="pointer";
+      p.style.transition="opacity .15s";
+      (function(sl){p.onclick=function(){pieActive=pieActive===sl.label?null:sl.label;renderPie();};})(s);
+      svg.appendChild(p);a=a1;
+    });
+  }
   var who=filterWho==="all"?"Всего":(PEOPLE[filterWho]?PEOPLE[filterWho].name:"Всего");
-  $("pieTotal").innerHTML='<span class="ec-total-lab">'+who+'</span>'+fmt(total);
-  $("pieCenter").innerHTML='<span class="lab">'+who+'</span>';
+  var act=pieActive&&slices.find(function(s){return s.label===pieActive});
+  if(act){
+    $("pieTotal").innerHTML='<span class="ec-total-lab">'+act.label+'</span>'+fmt(act.value);
+    $("pieCenter").innerHTML='<span class="lab">'+act.label+'</span>';
+  } else {
+    $("pieTotal").innerHTML='<span class="ec-total-lab">'+who+'</span>'+fmt(total);
+    $("pieCenter").innerHTML='<span class="lab">'+who+'</span>';
+  }
   var leg=$("pieLegend");leg.innerHTML="";
-  slices.forEach(function(s){
-    var pct=total?Math.round(s.value/total*100):0;
-    var row=document.createElement("div");row.className="leg-item";
-    row.innerHTML='<span class="leg-sw" style="background:'+s.color+'"></span><span class="leg-name"></span><span class="leg-val">'+fmt(s.value)+'</span><span class="leg-pct">'+pct+'%</span>';
-    row.querySelector(".leg-name").textContent=s.label;leg.appendChild(row);
+  allSlices.forEach(function(s){
+    var dis=!!pieDisabled[s.label];
+    var pct=total&&!dis?Math.round(s.value/total*100):0;
+    var row=document.createElement("div");
+    row.className="leg-item"+(dis?" leg-dis":"")+(pieActive===s.label?" leg-act":"");
+    row.style.cursor="pointer";
+    row.innerHTML='<span class="leg-sw" style="background:'+(dis?"#ccc":s.color)+'"></span><span class="leg-name"></span><span class="leg-val">'+(dis?"скрыто":fmt(s.value))+'</span><span class="leg-pct">'+(dis?"":pct+"%")+'</span>';
+    row.querySelector(".leg-name").textContent=s.label;
+    (function(sl){
+      row.onclick=function(){
+        if(pieDisabled[sl.label]){delete pieDisabled[sl.label];}
+        else{pieDisabled[sl.label]=true;if(pieActive===sl.label)pieActive=null;}
+        renderPie();
+      };
+    })(s);
+    leg.appendChild(row);
   });
 }
 document.querySelectorAll(".ectab").forEach(function(b){b.onclick=function(){expDim=b.getAttribute("data-dim");document.querySelectorAll(".ectab").forEach(function(x){x.classList.toggle("active",x===b)});renderPie()}});
