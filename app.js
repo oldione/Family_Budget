@@ -1,5 +1,8 @@
 var CLAUDE_FUNCTION_URL = "https://claudechat-vwvivsoxwa-ew.a.run.app";
-var ACCESS_CODES = {"mikhail2026":"me","veronika2026":"her"};
+var ACCESS_HASHES = {
+  "4425e92ec4667e45e06977e43cc301f14816e0f7456969275f72d9f2efa8d197":"me",
+  "0dbae777221f07f564a2176d733002fdf3e426e16668e1eff35798ac3e7964a9":"her"
+};
 
 // Код-экран
 (function(){
@@ -9,17 +12,20 @@ var ACCESS_CODES = {"mikhail2026":"me","veronika2026":"her"};
   var saved=localStorage.getItem("app_who");
   if(saved==="me"||saved==="her"){gate.style.display="none";window._appWho=saved;applyWho();return;}
   gate.style.display="flex";
-  document.querySelector(".main") && (document.querySelector(".main").style.display="none");
-  document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="none");
-  function tryCode(){
-    var v=gi("codeInput").value.trim().toLowerCase();
-    var who=ACCESS_CODES[v];
+  document.querySelector(".main")&&(document.querySelector(".main").style.display="none");
+  document.querySelector(".topnav")&&(document.querySelector(".topnav").style.display="none");
+  async function tryCode(){
+    var v=gi("codeInput").value.trim();
+    if(!v)return;
+    var buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));
+    var hex=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0")}).join("");
+    var who=ACCESS_HASHES[hex];
     if(who){
       localStorage.setItem("app_who",who);
       window._appWho=who;
       gate.style.display="none";
-      document.querySelector(".main") && (document.querySelector(".main").style.display="");
-      document.querySelector(".topnav") && (document.querySelector(".topnav").style.display="");
+      document.querySelector(".main")&&(document.querySelector(".main").style.display="");
+      document.querySelector(".topnav")&&(document.querySelector(".topnav").style.display="");
       applyWho();
     } else {
       gi("codeErr").textContent="Неверный код";
