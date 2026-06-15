@@ -146,36 +146,60 @@
   <div class="section-label" id="sec-panels">Детали за месяц</div>
   <div class="three-col">
     <div class="panel" data-cat="income">
-      <div class="panel-head"><h2>Доходы</h2><span class="panel-total" id="tInc">0</span></div>
-      <ul class="items" id="lInc"></ul>
+      <div class="panel-head">
+        <h2>Доходы</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="panel-total" id="tInc">0</span>
+          <button class="panel-collapse-btn" title="Свернуть/развернуть">▾</button>
+        </div>
+      </div>
       <div class="add-row">
         <input class="add-label" placeholder="Зарплата…"/>
         <input class="add-amount" type="number" placeholder="0"/>
         <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
         <button class="add-btn">+</button>
       </div>
+      <div class="panel-items-wrap">
+        <ul class="items" id="lInc"></ul>
+      </div>
     </div>
     <div class="panel" data-cat="fixed">
-      <div class="panel-head"><h2>Обязательные</h2><span class="panel-total" id="tFix">0</span></div>
-      <button class="copy-fixed" id="copyFixed">↻ скопировать из прошлого месяца</button>
-      <ul class="items" id="lFix"></ul>
+      <div class="panel-head">
+        <h2>Обязательные</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="panel-total" id="tFix">0</span>
+          <button class="panel-collapse-btn" title="Свернуть/развернуть">▾</button>
+        </div>
+      </div>
       <div class="add-row">
         <input class="add-label" placeholder="Аренда…"/>
         <input class="add-amount" type="number" placeholder="0"/>
         <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
         <button class="add-btn">+</button>
       </div>
+      <div class="panel-items-wrap">
+        <button class="copy-fixed" id="copyFixed">↻ скопировать из прошлого месяца</button>
+        <ul class="items" id="lFix"></ul>
+      </div>
     </div>
     <div class="panel" data-cat="variable">
-      <div class="panel-head"><h2>Переменные</h2><span class="panel-total" id="tVar">0</span></div>
-      <ul class="items" id="lVar"></ul>
-      <div class="sub-breakdown" id="varBreak"></div>
+      <div class="panel-head">
+        <h2>Переменные</h2>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="panel-total" id="tVar">0</span>
+          <button class="panel-collapse-btn" title="Свернуть/развернуть">▾</button>
+        </div>
+      </div>
       <div class="add-row">
         <input class="add-label" placeholder="Еда…"/>
         <select class="add-sub"><option>Продукты</option><option>Кафе</option><option>Транспорт</option><option>Авто</option><option>Развлечения</option><option>Дом</option><option>Здоровье</option><option>Прочее</option></select>
         <input class="add-amount" type="number" placeholder="0"/>
         <select class="add-cur"><option>RSD</option><option>EUR</option><option>USD</option></select>
         <button class="add-btn">+</button>
+      </div>
+      <div class="panel-items-wrap">
+        <ul class="items" id="lVar"></ul>
+        <div class="sub-breakdown" id="varBreak"></div>
       </div>
     </div>
   </div>

@@ -177,7 +177,12 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .item-note-input:focus{outline:none;border-color:var(--accent);color:var(--ink)}
 .item-del{border:none;background:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 4px;border-radius:5px;opacity:.35;transition:all .12s}
 .item-del:hover{color:var(--warm);opacity:1;background:var(--warm-soft)}
-.add-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;align-items:center;padding-top:12px;border-top:1px solid var(--line)}
+.add-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:0;margin-bottom:12px;align-items:center;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.panel-collapse-btn{border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px;padding:1px 4px;border-radius:6px;transition:transform .22s,color .12s;line-height:1;flex:none;display:grid;place-items:center}
+.panel-collapse-btn:hover{color:var(--ink)}
+.panel-collapse-btn.collapsed{transform:rotate(-90deg)}
+.panel-items-wrap{overflow:hidden;transition:max-height .3s ease;max-height:3000px}
+.panel-items-wrap.collapsed{max-height:0}
 .add-label,.add-amount{font:inherit;font-size:13px;padding:8px 11px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);transition:border-color .12s}
 .add-label{flex:1 1 90px;min-width:0}.add-amount{flex:0 0 58px;width:58px}
 .add-label:focus,.add-amount:focus{outline:none;border-color:var(--accent)}

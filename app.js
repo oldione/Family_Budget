@@ -249,6 +249,18 @@ document.querySelectorAll(".panel").forEach(function(p){
   function add(){var l=al.value.trim(),a=+aa.value||0;if(!l&&!a)return;var rec={l:l||"Без названия",a:a,cur:acur?acur.value:base,by:localStorage.getItem("app_who")||"me"};if(cat==="variable")rec.sub=(asub&&asub.value!=="__new")?asub.value:"Прочее";data[cat].push(rec);al.value="";aa.value="";renderCat(cat);totals();al.focus();saveMonth();}
   ab.onclick=add;aa.addEventListener("keydown",function(e){if(e.key==="Enter")add()});
 });
+document.querySelectorAll(".panel").forEach(function(p){
+  var btn=p.querySelector(".panel-collapse-btn");
+  var wrap=p.querySelector(".panel-items-wrap");
+  if(!btn||!wrap)return;
+  var key="panel_col_"+p.getAttribute("data-cat");
+  if(localStorage.getItem(key)==="1"){wrap.classList.add("collapsed");btn.classList.add("collapsed");}
+  btn.onclick=function(){
+    var c=wrap.classList.toggle("collapsed");
+    btn.classList.toggle("collapsed",c);
+    localStorage.setItem(key,c?"1":"0");
+  };
+});
 var FIXED_WORDS=["аренд","ипотек","кредит","связ","интернет","подписк","страхов","коммунал","свет","газ","вода","абонемент"];
 var INCOME_WORDS=["зарплат","аванс","премия","фриланс","доход","перевод"];
 var SUB_WORDS={"Еда":["продукт","еда","кафе","ресторан","кофе","обед","ужин","завтрак","магазин","супермаркет","пицц","бургер"],"Авто":["бензин","заправк","парковк","авто","машин","мойк","каско","осаго"],"Транспорт":["такси","метро","автобус","трамвай","транспорт","билет","поезд","самокат"],"Развлечения":["кино","бар","игр","концерт","развлеч","подарок","клуб"],"Дом":["мебель","ремонт","уборк","посуд","быт","техник"],"Здоровье":["аптек","лекарств","врач","спорт","зал","фитнес","здоров"]};
