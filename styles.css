@@ -110,6 +110,7 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 /* ── TWO-COL ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:16px;margin-bottom:22px}
+.two-col>*,.three-col>*{min-width:0}
 
 /* ── PIE CHART ── */
 .exp-chart{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
@@ -298,8 +299,6 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 
 /* ── MOBILE 600px ── */
 @media(max-width:600px){
-  /* prevent iOS auto-zoom on input focus */
-  input, select, textarea { font-size: 16px !important; }
   /* nav */
   .topnav{padding:0 16px;height:54px;gap:10px}
   .nav-logo{font-size:15px}
@@ -369,6 +368,15 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 
   /* copy fixed */
   .copy-fixed{padding:11px;font-size:13px}
+
+  /* prevent iOS auto-zoom — font-size must be ≥16px on interactive inputs */
+  .add-label,.add-amount,.add-sub,.add-cur,
+  .chat-input,.item-label,.item-amount,.item-cur,.item-sub,
+  .goal-add-input,.item-note-input,
+  #gName,#gTarget,#codeInput{font-size:16px}
+
+  /* nav full-width */
+  .topnav{width:100%;box-sizing:border-box}
 }
 .nav-logo{font-family:"Manrope",sans-serif;font-weight:800}
 h1,h2{font-family:"Manrope",sans-serif;letter-spacing:-.01em}
