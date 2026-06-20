@@ -134,7 +134,7 @@ function renderCat(cat,flashId){
   });
   $(totIds[cat]).textContent=fmt(csum(data[cat]));
   if(cat==="variable")renderBreak();
-  if(flashId)setTimeout(function(){var f=ul.querySelector(".flash");if(f)f.classList.remove("flash")},1400);
+  if(flashId){ul.scrollTop=ul.scrollHeight;setTimeout(function(){var f=ul.querySelector(".flash");if(f)f.classList.remove("flash")},1400);}
 }
 function totals(){
   $("tInc").textContent=fmt(csum(data.income));$("tFix").textContent=fmt(csum(data.fixed));$("tVar").textContent=fmt(csum(data.variable));

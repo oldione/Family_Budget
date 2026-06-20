@@ -158,7 +158,8 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .panel-total{font-size:15px;font-weight:800;letter-spacing:-.01em;padding:4px 12px;border-radius:99px}
 .panel[data-cat="income"] .panel-total{background:var(--accent-soft);color:var(--accent)}
 .panel[data-cat="fixed"] .panel-total,.panel[data-cat="variable"] .panel-total{background:var(--warm-soft);color:var(--warm)}
-.items{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.items{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:12px;max-height:380px;overflow-y:auto;scroll-behavior:smooth}
+.items::-webkit-scrollbar{width:4px}.items::-webkit-scrollbar-track{background:transparent}.items::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}.items::-webkit-scrollbar-thumb:hover{background:var(--muted)}
 .item{display:flex;align-items:center;gap:7px;padding:9px 11px;background:var(--bg);border-radius:var(--r-sm);border:1px solid transparent;transition:all .12s}
 .item:hover{border-color:var(--line);background:#eef2fb}
 .item.flash{border-color:var(--accent);background:var(--accent-soft)}
