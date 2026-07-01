@@ -54,10 +54,10 @@ var saveGoals = function(){};
 var saveMonthDebounced = function(){};
 var saveSubs = function(){};
 
-var MONTHS={
-  "2026-06":{income:[],fixed:[],variable:[]}
-};
-var curKey="2026-06";
+var _now=new Date();
+var curKey=_now.getFullYear()+"-"+String(_now.getMonth()+1).padStart(2,"0");
+var MONTHS={};
+MONTHS[curKey]={income:[],fixed:[],variable:[]};
 var data=MONTHS[curKey];
 var PEOPLE={me:{name:"Oldione",color:"#2d63f5"},her:{name:"Вероника",color:"#c06b8a"}};
 var filterWho="all";
@@ -142,7 +142,8 @@ function totals(){
   $("vInc").textContent=fmt(inc);$("vExp").textContent=fmt(exp);$("vBal").textContent=fmt(bal);
   var rt=inc>0?Math.round(bal/inc*100):0;
   $("vRate").textContent=inc>0?(bal<0?"перерасход "+Math.abs(rt)+"%":rt+"% от доходов"):"";
-  var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(filterWho==="all"?gSaved(g):(g.s[filterWho]||0),g.c);},0);
+  var totalSaved=0;
+  [goals,archived].forEach(function(gl){gl.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m===curKey&&(filterWho==="all"||h.by===filterWho))totalSaved+=toBase(h.a,h.cur||g.c);});});});
   if($("vSaved"))$("vSaved").textContent=fmt(totalSaved);
   var savePct=inc>0?Math.round(totalSaved/inc*100):0;
   if($("vSavedSub"))$("vSavedSub").textContent=goals.length?(savePct+"% от дохода · "+goals.length+" "+(goals.length===1?"цель":"цели")):"нет целей";
