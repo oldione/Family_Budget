@@ -641,7 +641,7 @@ function fbInit(){
   function loadGoals(){
     FB.getDoc(["households",FB.HID,"meta","goals"]).then(function(snap){
       if(snap.exists()){var d=snap.data();if(d.goals)goals=d.goals;if(d.archived)archived=d.archived;}
-      renderGoals();renderArchive();
+      renderGoals();renderArchive();renderLineChart();totals();
     });
   }
 
