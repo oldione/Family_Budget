@@ -142,11 +142,11 @@ function totals(){
   $("vInc").textContent=fmt(inc);$("vExp").textContent=fmt(exp);$("vBal").textContent=fmt(bal);
   var rt=inc>0?Math.round(bal/inc*100):0;
   $("vRate").textContent=inc>0?(bal<0?"перерасход "+Math.abs(rt)+"%":rt+"% от доходов"):"";
-  var totalSaved=0;
-  [goals,archived].forEach(function(gl){gl.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m===curKey&&(filterWho==="all"||h.by===filterWho))totalSaved+=toBase(h.a,h.cur||g.c);});});});
+  var totalSaved=goals.reduce(function(s,g){gNorm(g);return s+toBase(filterWho==="all"?gSaved(g):(g.s[filterWho]||0),g.c);},0);
+  var monthSaved=0;
+  [goals,archived].forEach(function(gl){gl.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m===curKey&&(filterWho==="all"||h.by===filterWho))monthSaved+=toBase(h.a,h.cur||g.c);});});});
   if($("vSaved"))$("vSaved").textContent=fmt(totalSaved);
-  var savePct=inc>0?Math.round(totalSaved/inc*100):0;
-  if($("vSavedSub"))$("vSavedSub").textContent=goals.length?(savePct+"% от дохода · "+goals.length+" "+(goals.length===1?"цель":"цели")):"нет целей";
+  if($("vSavedSub"))$("vSavedSub").textContent=goals.length?(goals.length+" "+(goals.length===1?"цель":"цели")+(monthSaved>0?" · этот месяц: "+fmt(monthSaved):"")):"нет целей";
   // welcome sub
   var ws=$("welcomeSub");if(ws){var mn=monthName(curKey);ws.textContent=mn.charAt(0).toUpperCase()+mn.slice(1)+" · доходы "+fmt(inc)+" · расходы "+fmt(exp)}
   renderPie();
