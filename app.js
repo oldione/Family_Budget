@@ -449,9 +449,7 @@ function renderLineChart(){
     var s=0;
     [goals,archived].forEach(function(gl){gl.forEach(function(g){
       gNorm(g);
-      var cur=filterWho==="all"?toBase(gSaved(g),g.c):toBase(g.s[filterWho]||0,g.c);
-      if(g.history)g.history.forEach(function(h){if(h.m>mk&&(filterWho==="all"||h.by===filterWho))cur-=toBase(h.a,h.cur||g.c);});
-      s+=Math.max(0,cur);
+      s+=filterWho==="all"?toBase(gSaved(g),g.c):toBase(g.s[filterWho]||0,g.c);
     });});
     savArr.push(s);
   });
