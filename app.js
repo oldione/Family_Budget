@@ -447,8 +447,7 @@ function renderLineChart(){
     incArr.push(m?csum(m.income):0);
     expArr.push(m?csum(m.fixed)+csum(m.variable):0);
     var s=0;
-    goals.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m===mk)s+=toBase(h.a,h.cur||g.c);});});
-    archived.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m===mk)s+=toBase(h.a,h.cur||g.c);});});
+    [goals,archived].forEach(function(gl){gl.forEach(function(g){if(g.history)g.history.forEach(function(h){if(h.m<=mk)s+=toBase(h.a,h.cur||g.c);});});});
     savArr.push(s);
   });
   var allVals=incArr.concat(expArr).concat(savArr).filter(function(v){return v>0});
