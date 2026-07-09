@@ -151,8 +151,8 @@ function totals(){
   var ws=$("welcomeSub");if(ws){var mn=monthName(curKey);ws.textContent=mn.charAt(0).toUpperCase()+mn.slice(1)+" · доходы "+fmt(inc)+" · расходы "+fmt(exp)}
   renderPie();
 }
-document.querySelectorAll(".fchip").forEach(function(b){b.onclick=function(){filterWho=b.getAttribute("data-who");document.querySelectorAll(".fchip").forEach(function(x){x.classList.toggle("active",x===b)});totals()}});
-document.querySelectorAll(".bcur").forEach(function(b){b.onclick=function(){base=b.getAttribute("data-cur");document.querySelectorAll(".bcur").forEach(function(x){x.classList.toggle("active",x===b)});renderRatesNote();renderAll()}});
+document.querySelectorAll(".fchip").forEach(function(b){b.onclick=function(){filterWho=b.getAttribute("data-who");document.querySelectorAll(".fchip").forEach(function(x){x.classList.toggle("active",x===b)});totals();renderLineChart();}});
+document.querySelectorAll(".bcur").forEach(function(b){b.onclick=function(){base=b.getAttribute("data-cur");document.querySelectorAll(".bcur").forEach(function(x){x.classList.toggle("active",x===b)});renderRatesNote();renderAll();renderLineChart();}});
 $("copyFixed").onclick=function(){
   var prev=MONTHS[shiftKey(curKey,-1)];
   if(!prev||!prev.fixed||!prev.fixed.length){var b=$("copyFixed");var t=b.textContent;b.textContent="в прошлом месяце пусто";setTimeout(function(){b.textContent=t},1600);return}
@@ -444,8 +444,8 @@ function renderLineChart(){
   var incArr=[],expArr=[],savArr=[];
   keys.forEach(function(mk){
     var m=MONTHS[mk];
-    incArr.push(m?csum(m.income):0);
-    expArr.push(m?csum(m.fixed)+csum(m.variable):0);
+    incArr.push(m?csum(m.income,filterWho):0);
+    expArr.push(m?csum(m.fixed,filterWho)+csum(m.variable,filterWho):0);
     var s=0;
     [goals,archived].forEach(function(gl){gl.forEach(function(g){
       gNorm(g);
