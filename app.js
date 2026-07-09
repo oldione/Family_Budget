@@ -467,7 +467,7 @@ function renderLineChart(){
     arr.forEach(function(v,i){
       var cx=xOf(i),cy=yOf(v);
       var c=document.createElementNS(NS,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r","4.5");c.setAttribute("fill","#fff");c.setAttribute("stroke",color);c.setAttribute("stroke-width","2.2");svg.appendChild(c);
-      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);t.textContent=v>=1000?Math.round(v/1000)+"к":Math.round(v);svg.appendChild(t)}
+      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);var kv=Math.round(v/100)/10;t.textContent=v>=1000?(kv===Math.floor(kv)?kv+"к":kv.toFixed(1)+"к"):nf.format(Math.round(v));svg.appendChild(t)}
     });
   }
   makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");makeLine(savArr,"#4caf7d");
