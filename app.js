@@ -448,8 +448,10 @@ function renderLineChart(){
     expArr.push(m?csum(m.fixed,filterWho)+csum(m.variable,filterWho):0);
     var s=0;
     [goals,archived].forEach(function(gl){gl.forEach(function(g){
-      gNorm(g);
-      s+=filterWho==="all"?toBase(gSaved(g),g.c):toBase(g.s[filterWho]||0,g.c);
+      if(g.history)g.history.forEach(function(h){
+        if(h.m<=mk&&(filterWho==="all"||h.by===filterWho))
+          s+=toBase(h.a,h.cur||g.c);
+      });
     });});
     savArr.push(s);
   });
