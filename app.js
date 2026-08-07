@@ -502,7 +502,8 @@ function renderGoals(){
       : '<div class="goal-actions">'+
           '<div class="goal-actions-row">'+
             '<input class="goal-add-input" type="number" placeholder="Сумма">'+
-            '<button class="goal-add-btn">+</button>'+
+            '<button class="goal-add-btn" title="Пополнить">+</button>'+
+            '<button class="goal-sub-btn" title="Списать на расход">−</button>'+
           '</div>'+
         '</div>';
     var el=document.createElement("div");el.className="goal-card"+(done?" done":"");
@@ -541,7 +542,31 @@ function renderGoals(){
       var gi=el.querySelector(".goal-add-input");
       var activeWho=localStorage.getItem("app_who")||"me";
       function addc(){var v=+gi.value||0;if(!v)return;g.s[activeWho]=(g.s[activeWho]||0)+v;if(!g.history)g.history=[];g.history.push({m:curKey,a:v,cur:g.c,by:activeWho});gi.value="";renderGoals();saveGoals();renderLineChart();}
-      el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
+      function subc(){
+        var v=+gi.value||0;if(!v)return;
+        var total=gSaved(g);
+        if(v>total){if(!confirm("В цели «"+g.n+"» отложено только "+gfmt(total,g.c)+". Списать всё?"))return;v=total;}
+        if(!v)return;
+        var label=prompt("На что списываем с цели «"+g.n+"»?",g.n);
+        if(label===null)return;
+        label=label.trim()||g.n;
+        // делим списание между "me"/"her" пропорционально их доле в общей сумме, независимо от того, кто списывает
+        var meShare=total>0?(g.s.me||0)/total:0.5;
+        var vMe=Math.min(g.s.me||0,Math.round(v*meShare));
+        var vHer=v-vMe;
+        if(vHer>(g.s.her||0)){vMe+=vHer-(g.s.her||0);vHer=g.s.her||0;}
+        g.s.me=(g.s.me||0)-vMe;
+        g.s.her=(g.s.her||0)-vHer;
+        if(!g.history)g.history=[];
+        if(vMe)g.history.push({m:curKey,a:-vMe,cur:g.c,by:"me"});
+        if(vHer)g.history.push({m:curKey,a:-vHer,cur:g.c,by:"her"});
+        var rec={l:label,a:v,cur:g.c,by:activeWho,sub:"Цель: "+g.n};
+        ensureSub(rec.sub);
+        data.variable.push(rec);
+        gi.value="";
+        renderGoals();renderCat("variable");totals();saveGoals();saveMonth();renderLineChart();
+      }
+      el.querySelector(".goal-add-btn").onclick=addc;el.querySelector(".goal-sub-btn").onclick=subc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
     }
     wrap.appendChild(el);
   });
