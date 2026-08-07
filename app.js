@@ -485,6 +485,46 @@ function gfmt(n,c){return nf.format(Math.round(n))+" "+(c==="EUR"?"€":"дин.
 var GOAL_C=2*Math.PI*54;
 function gSaved(g){if(typeof g.s==="number")return g.s;return (g.s&&g.s.me||0)+(g.s&&g.s.her||0);}
 function gNorm(g){if(typeof g.s==="number"){g.s={me:g.s,her:0};}}
+// Списывает сумму v с цели g (активная или архивная) на расход label.
+// Делит списание между "me"/"her" пропорционально их доле в общей сумме,
+// независимо от того, кто сейчас активен — это общие деньги, а не личные.
+function spendFromGoal(g,v,label){
+  gNorm(g);
+  var total=gSaved(g);
+  var meShare=total>0?(g.s.me||0)/total:0.5;
+  var vMe=Math.min(g.s.me||0,Math.round(v*meShare));
+  var vHer=v-vMe;
+  if(vHer>(g.s.her||0)){vMe+=vHer-(g.s.her||0);vHer=g.s.her||0;}
+  g.s.me=(g.s.me||0)-vMe;
+  g.s.her=(g.s.her||0)-vHer;
+  if(!g.history)g.history=[];
+  if(vMe)g.history.push({m:curKey,a:-vMe,cur:g.c,by:"me"});
+  if(vHer)g.history.push({m:curKey,a:-vHer,cur:g.c,by:"her"});
+  var rec={l:label,a:v,cur:g.c,by:localStorage.getItem("app_who")||"me",sub:"Цель: "+g.n};
+  ensureSub(rec.sub);
+  data.variable.push(rec);
+}
+// gi (опционально) — поле ввода суммы на карточке; если в нём есть значение, не переспрашиваем сумму отдельно.
+function promptGoalSpend(g,gi){
+  var total=gSaved(g);
+  var v;
+  if(gi&&+gi.value){
+    v=+gi.value;
+  }else{
+    var vs=prompt("Сколько списать с «"+g.n+"» (отложено "+gfmt(total,g.c)+")?");
+    if(vs===null)return;
+    v=+vs||0;
+  }
+  if(!v)return;
+  if(v>total){if(!confirm("В цели «"+g.n+"» отложено только "+gfmt(total,g.c)+". Списать всё?"))return;v=total;}
+  if(!v)return;
+  var label=prompt("На что списываем с цели «"+g.n+"»?",g.n);
+  if(label===null)return;
+  label=label.trim()||g.n;
+  spendFromGoal(g,v,label);
+  if(gi)gi.value="";
+  renderCat("variable");totals();saveGoals();saveMonth();renderLineChart();
+}
 function renderGoals(){
   var wrap=$("gList");wrap.innerHTML="";
   if(!goals.length){wrap.innerHTML='<p style="color:rgba(255,255,255,.45);font-size:14px">Активных целей нет.</p>';return}
@@ -498,7 +538,12 @@ function renderGoals(){
     var herLen=g.t>0?Math.min(GOAL_C-meLen,GOAL_C*(g.s.her||0)/g.t):0;
     var meCol=PEOPLE.me.color;var herCol=PEOPLE.her.color;
     var actions=done
-      ? '<button class="goal-archive-btn">В архив ✓</button>'
+      ? '<div class="goal-actions">'+
+          '<div class="goal-actions-row">'+
+            '<button class="goal-archive-btn" style="margin-top:0;flex:1">В архив ✓</button>'+
+            '<button class="goal-sub-btn" title="Списать на расход">−</button>'+
+          '</div>'+
+        '</div>'
       : '<div class="goal-actions">'+
           '<div class="goal-actions-row">'+
             '<input class="goal-add-input" type="number" placeholder="Сумма">'+
@@ -532,6 +577,7 @@ function renderGoals(){
       '</div>'+actions;
     el.querySelector(".goal-name").textContent=g.n;
     el.querySelector(".goal-del").onclick=function(){goals=goals.filter(function(x){return x!==g});renderGoals();saveGoals();};
+    el.querySelector(".goal-sub-btn").onclick=function(){promptGoalSpend(g,el.querySelector(".goal-add-input"));renderGoals();};
     if(done){
       el.querySelector(".goal-archive-btn").onclick=function(){
         archived.unshift({n:g.n,s:saved,c:g.c,closed:monthName(curKey)});
@@ -542,31 +588,7 @@ function renderGoals(){
       var gi=el.querySelector(".goal-add-input");
       var activeWho=localStorage.getItem("app_who")||"me";
       function addc(){var v=+gi.value||0;if(!v)return;g.s[activeWho]=(g.s[activeWho]||0)+v;if(!g.history)g.history=[];g.history.push({m:curKey,a:v,cur:g.c,by:activeWho});gi.value="";renderGoals();saveGoals();renderLineChart();}
-      function subc(){
-        var v=+gi.value||0;if(!v)return;
-        var total=gSaved(g);
-        if(v>total){if(!confirm("В цели «"+g.n+"» отложено только "+gfmt(total,g.c)+". Списать всё?"))return;v=total;}
-        if(!v)return;
-        var label=prompt("На что списываем с цели «"+g.n+"»?",g.n);
-        if(label===null)return;
-        label=label.trim()||g.n;
-        // делим списание между "me"/"her" пропорционально их доле в общей сумме, независимо от того, кто списывает
-        var meShare=total>0?(g.s.me||0)/total:0.5;
-        var vMe=Math.min(g.s.me||0,Math.round(v*meShare));
-        var vHer=v-vMe;
-        if(vHer>(g.s.her||0)){vMe+=vHer-(g.s.her||0);vHer=g.s.her||0;}
-        g.s.me=(g.s.me||0)-vMe;
-        g.s.her=(g.s.her||0)-vHer;
-        if(!g.history)g.history=[];
-        if(vMe)g.history.push({m:curKey,a:-vMe,cur:g.c,by:"me"});
-        if(vHer)g.history.push({m:curKey,a:-vHer,cur:g.c,by:"her"});
-        var rec={l:label,a:v,cur:g.c,by:activeWho,sub:"Цель: "+g.n};
-        ensureSub(rec.sub);
-        data.variable.push(rec);
-        gi.value="";
-        renderGoals();renderCat("variable");totals();saveGoals();saveMonth();renderLineChart();
-      }
-      el.querySelector(".goal-add-btn").onclick=addc;el.querySelector(".goal-sub-btn").onclick=subc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
+      el.querySelector(".goal-add-btn").onclick=addc;gi.addEventListener("keydown",function(e){if(e.key==="Enter")addc();});
     }
     wrap.appendChild(el);
   });
@@ -576,9 +598,12 @@ function renderArchive(){
   var list=$("arcList");list.innerHTML="";
   if(!archived.length){list.innerHTML='<p class="arc-empty">Пока пусто.</p>';return}
   archived.forEach(function(a){
+    gNorm(a);
     var el=document.createElement("div");el.className="arc-item";
-    el.innerHTML='<span class="arc-check">✓</span><span class="arc-name"></span><span class="arc-sum">'+gfmt(a.s,a.c)+'</span><span class="arc-month">закрыто '+a.closed+'</span>';
-    el.querySelector(".arc-name").textContent=a.n;list.appendChild(el);
+    el.innerHTML='<span class="arc-check">✓</span><span class="arc-name"></span><span class="arc-sum">'+gfmt(gSaved(a),a.c)+'</span><button class="arc-sub-btn" title="Списать на расход">−</button><span class="arc-month">закрыто '+a.closed+'</span>';
+    el.querySelector(".arc-name").textContent=a.n;
+    el.querySelector(".arc-sub-btn").onclick=function(){promptGoalSpend(a);renderArchive();};
+    list.appendChild(el);
   });
 }
 $("gAdd").onclick=function(){var n=$("gName").value.trim(),t=+$("gTarget").value||0,c=$("gCur").value;if(!n)return;goals.push({n:n,t:t,s:{me:0,her:0},c:c});$("gName").value="";$("gTarget").value="";renderGoals();saveGoals();};

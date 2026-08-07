@@ -281,6 +281,8 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .arc-sum{font-weight:700;font-size:14px;color:var(--green)}
 .arc-month{font-size:12px;color:var(--muted);min-width:100px;text-align:right}
 .arc-empty{color:var(--muted);font-size:14px}
+.arc-sub-btn{border:none;background:var(--line);color:var(--ink);font:inherit;font-weight:700;font-size:13px;border-radius:7px;padding:3px 10px;cursor:pointer;flex:none;transition:background .12s,color .12s}
+.arc-sub-btn:hover{background:var(--warm);color:#fff}
 
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
 .section-head h2{font-size:15px;font-weight:700}
