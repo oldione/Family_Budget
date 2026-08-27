@@ -587,7 +587,7 @@ function renderGoals(){
     el.querySelector(".goal-sub-btn").onclick=function(){promptGoalSpend(g,el.querySelector(".goal-add-input"));renderGoals();};
     if(done){
       el.querySelector(".goal-archive-btn").onclick=function(){
-        archived.unshift({n:g.n,s:saved,c:g.c,closed:monthName(curKey)});
+        archived.unshift({n:g.n,s:saved,c:g.c,closed:monthName(curKey),history:g.history});
         goals=goals.filter(function(x){return x!==g});
         renderGoals();renderArchive();saveGoals();
       };
