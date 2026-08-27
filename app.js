@@ -464,18 +464,25 @@ function renderLineChart(){
   function xOf(i){return PX+i*(W-PX*2)/(n-1)}
   function yOf(v){return PY+(1-v/maxVal)*(H-PY*2)}
   for(var gi=0;gi<4;gi++){var gy=PY+gi*(H-PY*2)/3;var gl=document.createElementNS(NS,"line");gl.setAttribute("x1",0);gl.setAttribute("x2",W);gl.setAttribute("y1",gy);gl.setAttribute("y2",gy);gl.setAttribute("stroke","#dde4f0");gl.setAttribute("stroke-width","1");svg.appendChild(gl)}
-  function makeLine(arr,color){
-    var apts="M"+xOf(0)+" "+H;arr.forEach(function(v,i){apts+=" L"+xOf(i)+" "+yOf(v)});apts+=" L"+xOf(arr.length-1)+" "+H+" Z";
+  function makeLine(arr,color,step,labelUp){
+    // step=true рисует "лестницей" (значение держится до месяца, в котором реально изменилось,
+    // и прыгает вертикально) — так видно, в каком месяце было пополнение/списание, а не плавный рост
+    var ptsArr=[];
+    arr.forEach(function(v,i){
+      if(step&&i>0)ptsArr.push(xOf(i)+" "+yOf(arr[i-1]));
+      ptsArr.push(xOf(i)+" "+yOf(v));
+    });
+    var ptsStr=ptsArr.join(" L ");
+    var apts="M"+xOf(0)+" "+H+" L "+ptsStr+" L"+xOf(arr.length-1)+" "+H+" Z";
     var area=document.createElementNS(NS,"path");area.setAttribute("d",apts);area.setAttribute("fill",color);area.setAttribute("opacity","0.07");svg.appendChild(area);
-    var pts=arr.map(function(v,i){return xOf(i)+" "+yOf(v)}).join(" L ");
-    var line=document.createElementNS(NS,"polyline");line.setAttribute("points",pts);line.setAttribute("fill","none");line.setAttribute("stroke",color);line.setAttribute("stroke-width","2.5");line.setAttribute("stroke-linejoin","round");line.setAttribute("stroke-linecap","round");svg.appendChild(line);
+    var line=document.createElementNS(NS,"polyline");line.setAttribute("points",ptsStr);line.setAttribute("fill","none");line.setAttribute("stroke",color);line.setAttribute("stroke-width","2.5");line.setAttribute("stroke-linejoin","round");line.setAttribute("stroke-linecap","round");svg.appendChild(line);
     arr.forEach(function(v,i){
       var cx=xOf(i),cy=yOf(v);
       var c=document.createElementNS(NS,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r","4.5");c.setAttribute("fill","#fff");c.setAttribute("stroke",color);c.setAttribute("stroke-width","2.2");svg.appendChild(c);
-      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);var kv=Math.round(v/100)/10;t.textContent=v>=1000?(kv===Math.floor(kv)?kv+"к":kv.toFixed(1)+"к"):nf.format(Math.round(v));svg.appendChild(t)}
+      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",labelUp?cy-18:cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);var kv=Math.round(v/100)/10;t.textContent=v>=1000?(kv===Math.floor(kv)?kv+"к":kv.toFixed(1)+"к"):nf.format(Math.round(v));svg.appendChild(t)}
     });
   }
-  makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");makeLine(savArr,"#4caf7d");
+  makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");makeLine(savArr,"#4caf7d",true,true);
   keys.forEach(function(mk,i){var p2=mk.split("-");var lbl=MN[+p2[1]-1].slice(0,3)+" "+p2[0].slice(2);var t=document.createElementNS(NS,"text");t.setAttribute("x",xOf(i));t.setAttribute("y",H+4);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("fill","#8a96b0");t.setAttribute("font-weight","600");t.textContent=lbl;svg.appendChild(t)});
   svg.setAttribute("viewBox","0 0 "+W+" "+(H+16));
 }
