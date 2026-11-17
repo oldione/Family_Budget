@@ -105,7 +105,8 @@ body{font-family:"Manrope",system-ui,sans-serif;background:var(--bg);color:var(-
 .lc-legend{display:flex;gap:16px}
 .lc-leg{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--muted)}
 .lc-leg-dot{width:9px;height:9px;border-radius:50%}
-.lc-svg{width:100%;height:auto;overflow:visible}
+.lc-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:4px}
+.lc-svg{display:block;max-width:none}
 
 /* ── TWO-COL ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}

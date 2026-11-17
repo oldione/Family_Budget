@@ -440,7 +440,10 @@ function avgMonthlyBalance(){
 /* ── ЛИНЕЙНЫЙ ГРАФИК ── */
 function renderLineChart(){
   var svg=$("lcSvg");svg.innerHTML="";
-  var keys=[];var k=curKey;for(var i=0;i<6;i++){keys.unshift(k);k=shiftKey(k,-1)}
+  // Диапазон: от самого раннего месяца с данными (не дальше 24 мес. назад) до текущего, минимум 6 месяцев.
+  var keys=[];var k=curKey;
+  var earliest=Object.keys(MONTHS).filter(function(mk){var m=MONTHS[mk];return m&&(m.income.length||m.fixed.length||m.variable.length)}).sort()[0]||curKey;
+  for(var i=0;i<24;i++){keys.unshift(k);if(i>=5&&k<=earliest)break;k=shiftKey(k,-1)}
   var incArr=[],expArr=[],savArr=[];
   keys.forEach(function(mk){
     var m=MONTHS[mk];
@@ -460,7 +463,10 @@ function renderLineChart(){
   });
   var allVals=incArr.concat(expArr).concat(savArr).filter(function(v){return v>0});
   var maxVal=allVals.length?Math.max.apply(null,allVals)*1.18:1;
-  var W=800,H=130,PX=0,PY=12;var n=keys.length;
+  // Фиксированный шаг между месяцами в пикселях: график не сжимается на узком экране,
+  // а уходит в горизонтальный скролл (.lc-scroll). SVG рисуется 1:1 в пикселях.
+  var wrap=$("lcScroll");var STEP=110,PX=36;var n=keys.length;
+  var W=Math.max(wrap.clientWidth||0,(n-1)*STEP+PX*2),H=190,PY=26;
   function xOf(i){return PX+i*(W-PX*2)/(n-1)}
   function yOf(v){return PY+(1-v/maxVal)*(H-PY*2)}
   for(var gi=0;gi<4;gi++){var gy=PY+gi*(H-PY*2)/3;var gl=document.createElementNS(NS,"line");gl.setAttribute("x1",0);gl.setAttribute("x2",W);gl.setAttribute("y1",gy);gl.setAttribute("y2",gy);gl.setAttribute("stroke","#dde4f0");gl.setAttribute("stroke-width","1");svg.appendChild(gl)}
@@ -479,13 +485,16 @@ function renderLineChart(){
     arr.forEach(function(v,i){
       var cx=xOf(i),cy=yOf(v);
       var c=document.createElementNS(NS,"circle");c.setAttribute("cx",cx);c.setAttribute("cy",cy);c.setAttribute("r","4.5");c.setAttribute("fill","#fff");c.setAttribute("stroke",color);c.setAttribute("stroke-width","2.2");svg.appendChild(c);
-      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",labelUp?cy-18:cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);var kv=Math.round(v/100)/10;t.textContent=v>=1000?(kv===Math.floor(kv)?kv+"к":kv.toFixed(1)+"к"):nf.format(Math.round(v));svg.appendChild(t)}
+      if(v>0){var t=document.createElementNS(NS,"text");t.setAttribute("x",cx);t.setAttribute("y",labelUp?cy-18:cy-10);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","11");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("font-weight","700");t.setAttribute("fill",color);var kv=Math.round(v/100)/10;t.textContent=v>=1000?(kv===Math.floor(kv)?kv+"к":kv.toFixed(1)+"к"):nf.format(Math.round(v));svg.appendChild(t)}
     });
   }
   makeLine(incArr,"#2d63f5");makeLine(expArr,"#e0552e");makeLine(savArr,"#4caf7d",true,true);
-  keys.forEach(function(mk,i){var p2=mk.split("-");var lbl=MN[+p2[1]-1].slice(0,3)+" "+p2[0].slice(2);var t=document.createElementNS(NS,"text");t.setAttribute("x",xOf(i));t.setAttribute("y",H+4);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","10");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("fill","#8a96b0");t.setAttribute("font-weight","600");t.textContent=lbl;svg.appendChild(t)});
-  svg.setAttribute("viewBox","0 0 "+W+" "+(H+16));
+  keys.forEach(function(mk,i){var p2=mk.split("-");var lbl=MN[+p2[1]-1].slice(0,3)+" "+p2[0].slice(2);var t=document.createElementNS(NS,"text");t.setAttribute("x",xOf(i));t.setAttribute("y",H+14);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","11");t.setAttribute("font-family","Manrope,sans-serif");t.setAttribute("fill","#8a96b0");t.setAttribute("font-weight","600");t.textContent=lbl;svg.appendChild(t)});
+  svg.setAttribute("viewBox","0 0 "+W+" "+(H+20));
+  svg.setAttribute("width",W);svg.setAttribute("height",H+20);
+  wrap.scrollLeft=wrap.scrollWidth; // показываем текущий месяц (справа)
 }
+var _lcResizeT;window.addEventListener("resize",function(){clearTimeout(_lcResizeT);_lcResizeT=setTimeout(renderLineChart,150)});
 
 /* ── ЦЕЛИ (dot-ring) ── */
 function gfmt(n,c){return nf.format(Math.round(n))+" "+(c==="EUR"?"€":"дин.")}
